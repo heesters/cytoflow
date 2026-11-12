@@ -22,7 +22,17 @@ Polygon Gate
 ------------
 
 Draw a polygon gate.  To add vertices, use a single-click; to close the
-polygon, click the first vertex a second time.
+polygon, **double-click** (or click the first vertex a second time).
+
+- While drawing, press **Backspace** or **Delete** to remove the last vertex.
+- Press **Escape** to throw away the polygon and start a new one.
+- Once the polygon is closed, **drag** any vertex to adjust it; 
+  **right-click** a vertex (two-finger click on a Mac trackpad) to remove it.
+- Hold **Shift** and drag to move the whole polygon.
+- Hold **Control** (on a Mac, the physical **control** key, not command)
+  and drag to move a vertex before the polygon is closed.
+
+If keys don't seem to work, click the plot once so it has keyboard focus.
 
 .. object:: Name
 

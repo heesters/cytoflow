@@ -54,7 +54,7 @@ from matplotlib.figure import Figure
 
 #from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.backend_bases import MouseEvent
+from matplotlib.backend_bases import MouseEvent, KeyEvent
 
 import numpy as np
 
@@ -80,6 +80,8 @@ class Msg(object):
     MOUSE_MOVE_EVENT = "MOUSE_MOVE"
     MOUSE_RELEASE_EVENT = "MOUSE_RELEASE"
     MOUSE_DOUBLE_CLICK_EVENT = "MOUSE_DOUBLE_CLICK"
+    KEY_PRESS_EVENT = "KEY_PRESS"
+    KEY_RELEASE_EVENT = "KEY_RELEASE"
     
     DPI = "DPI"
     PRINT = "PRINT"
@@ -161,6 +163,15 @@ class FigureCanvasAggRemote(FigureCanvasAgg):
                 if msg == Msg.RESIZE_EVENT:
                     with self.plot_lock:
                         (winch, hinch, dpi) = payload
+                        
+                        # the local dpi includes the screen's device pixel
+                        # ratio (2 on a Retina display, 1 on most external
+                        # monitors.)  apply it to the *current* figure too,
+                        # not just to new ones -- otherwise, after the window
+                        # is dragged between screens, the rendered image and
+                        # the mouse coordinates no longer agree and gates are
+                        # drawn in the wrong place.
+                        self.figure._set_dpi(dpi, forward = False)
                         self.figure.set_size_inches(winch, hinch)
                         matplotlib.rcParams['figure.dpi'] = dpi
                         # FigureCanvasAgg.resize_event(self)
@@ -193,6 +204,14 @@ class FigureCanvasAggRemote(FigureCanvasAgg):
                         with self.plot_lock:
                             #FigureCanvasAgg.motion_notify_event(self, x, y)
                             MouseEvent("motion_notify_event", self, x, y, modifiers = None, guiEvent = None)._process()
+                            
+                elif msg in (Msg.KEY_PRESS_EVENT, Msg.KEY_RELEASE_EVENT):
+                    (key, x, y) = payload
+                    name = "key_press_event" if msg == Msg.KEY_PRESS_EVENT \
+                           else "key_release_event"
+                    if self.process_events.is_set():
+                        with self.plot_lock:
+                            KeyEvent(name, self, key, x, y, guiEvent = None)._process()
                             
                 elif msg == Msg.PRINT:
                     (args, kwargs) = payload

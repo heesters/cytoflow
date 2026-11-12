@@ -39,7 +39,6 @@ from traits.api import (HasStrictTraits, Str, List, Float, provides,
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.widgets import PolygonSelector
 import numpy as np
 
 import cytoflow.utility as util
@@ -47,6 +46,8 @@ from cytoflow.views import ISelectionView, ScatterplotView, DensityView
 
 from .i_operation import IOperation
 from .base_op_views import Op2DView
+
+from ._selectors import EasyPolygonSelector
 
 @provides(IOperation)
 class PolygonOp(HasStrictTraits):
@@ -305,7 +306,7 @@ class _PolygonSelection(Op2DView):
 
     # internal state.
     _ax = Any(transient = True)
-    _widget = Instance(PolygonSelector, transient = True)
+    _widget = Instance(EasyPolygonSelector, transient = True)
     _patch = Instance(mpl.patches.PathPatch, transient = True)
     _patch_props = Dict()
     _selector_props = Dict()
@@ -356,17 +357,27 @@ class _PolygonSelection(Op2DView):
     @observe('interactive', post_init = True)
     def _interactive(self, _):
         if self._ax and self.interactive:
-            self._widget = PolygonSelector(self._ax,
-                                           self._onselect,
-                                           props = self._selector_props,
-                                           useblit = True,
-                                           grab_range = 20)
+            if self._widget:
+                self._widget.set_active(False)
+                
+            self._widget = EasyPolygonSelector(self._ax,
+                                               self._onselect,
+                                               props = self._selector_props,
+                                               useblit = True,
+                                               grab_range = 20)
+            
+            # if there's already a gate, load it into the selector so the
+            # user can drag its vertices to adjust it (instead of having to
+            # re-draw the whole thing.)  Press Escape to start a new polygon.
+            if self.op.vertices and len(self.op.vertices) >= 3:
+                self._widget.verts = [tuple(v) for v in self.op.vertices]
+                
         elif self._widget:
             self._widget.set_active(False) 
             self._widget = None    
      
     def _onselect(self, vertices):
-        self.op.vertices = vertices
+        self.op.vertices = [(float(x), float(y)) for (x, y) in vertices]
   
 
 @provides(ISelectionView)

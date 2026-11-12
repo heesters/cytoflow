@@ -34,13 +34,13 @@ from traits.api import (HasStrictTraits, Float, Str, Instance, Bool,
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D    
-from matplotlib.widgets import SpanSelector
 
 import cytoflow.utility as util
 from cytoflow.views import HistogramView, ISelectionView
 
 from .i_operation import IOperation
 from .base_op_views import Op1DView
+from ._selectors import EasySpanSelector
 
 @provides(IOperation)
 class RangeOp(HasStrictTraits):
@@ -250,7 +250,7 @@ class RangeSelection(Op1DView, HistogramView):
 
     # internal state.
     _ax = Any(transient = True)
-    _span = Instance(SpanSelector, transient = True)
+    _span = Instance(EasySpanSelector, transient = True)
     _low_line = Instance(Line2D, transient = True)
     _high_line = Instance(Line2D, transient = True)
     _hline = Instance(Line2D, transient = True)
@@ -285,7 +285,7 @@ class RangeSelection(Op1DView, HistogramView):
 
     @observe('[op.low,op.high]', post_init = True)
     def _draw_span(self, _):
-        if not (self._ax and self.op.low and self.op.high):
+        if not (self._ax and self.op.low is not None and self.op.high is not None):
             return
         
         if self._low_line and self._low_line in self._ax.lines:
@@ -310,22 +310,43 @@ class RangeSelection(Op1DView, HistogramView):
     @observe('interactive', post_init = True)
     def _interactive(self, _):
         if self._ax and self.interactive:
-            self._span = SpanSelector(self._ax, 
-                                      onselect = self._onselect, 
-                                      direction = "horizontal",
-                                      interactive = False,
-                                      props = dict(facecolor = 'none',
-                                                   edgecolor = 'blue',
-                                                   linewidth = 2),
-                                      useblit = True)
-        else:
+            if self._span:
+                self._span.set_active(False)
+                
+            # interactive = True lets the user drag the edges of an existing
+            # range to adjust it, instead of having to re-draw it.
+            self._span = EasySpanSelector(self._ax, 
+                                          onselect = self._onselect, 
+                                          direction = "horizontal",
+                                          interactive = True,
+                                          drag_from_anywhere = True,
+                                          grab_range = 15,
+                                          props = dict(facecolor = 'blue',
+                                                       edgecolor = 'blue',
+                                                       alpha = 0.15,
+                                                       linewidth = 2),
+                                          handle_props = dict(color = 'blue',
+                                                              linewidth = 2),
+                                          useblit = True)
+            
+            if self.op.low is not None and self.op.high is not None \
+                and self.op.high > self.op.low:
+                self._span.extents = (self.op.low, self.op.high)
+                self._span._selection_completed = True
+                
+        elif self._span:
+            self._span.set_active(False)
             self._span = None
         
     
     def _onselect(self, xmin, xmax): 
         """Update selection traits"""
-        self.op.low = xmin
-        self.op.high = xmax
+        # ignore a click without a drag
+        if not xmax > xmin:
+            return
+        
+        self.op.low = float(xmin)
+        self.op.high = float(xmax)
         
 util.expand_class_attributes(RangeSelection)
 util.expand_method_parameters(RangeSelection, RangeSelection.plot)  

@@ -25,6 +25,10 @@
 Draw a 2-dimensional range gate (eg, a rectangle).  To set the gate, 
 click-and-drag on the plot.
 
+To adjust an existing gate, drag any of its corners or edges, or drag the 
+inside to move the whole box.  A single click (without dragging) leaves the
+gate unchanged.
+
 .. object:: Name
 
     The operation name.  Used to name the new metadata field that's created by 

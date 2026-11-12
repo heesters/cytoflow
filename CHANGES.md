@@ -1,3 +1,15 @@
+## Unreleased
+
+- Easier gate drawing, especially on a laptop trackpad (eg, macOS):
+  - Polygon gates close with a double-click; Backspace/Delete removes the
+    last vertex; Escape starts over.
+  - Existing polygon, range and 2D range gates can be adjusted by dragging
+    their vertices / edges / corners, instead of re-drawing them.
+  - A stray click no longer erases a range or 2D range gate.
+- The GUI's plot now receives keyboard events (they were dropped before).
+- Fix gates being drawn in the wrong place when the plot window is on a
+  non-Retina screen (eg, an external monitor on a Mac).
+
 ## Release 1.2 "mCherry"
 * Huge improvements to documentation.  Head over to https://cytoflow.readthedocs.io for tutorials, HOWTOs, explainers, and reference documentation.
 * Implemented an "experiment browser" to help keep track of channels, conditions, and statistics in the GUI.

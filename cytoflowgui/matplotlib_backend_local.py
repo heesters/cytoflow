@@ -75,6 +75,8 @@ class Msg(object):
     MOUSE_MOVE_EVENT = "MOUSE_MOVE"
     MOUSE_RELEASE_EVENT = "MOUSE_RELEASE"
     MOUSE_DOUBLE_CLICK_EVENT = "MOUSE_DOUBLE_CLICK"
+    KEY_PRESS_EVENT = "KEY_PRESS"
+    KEY_RELEASE_EVENT = "KEY_RELEASE"
     
     PRINT = "PRINT"
     
@@ -104,6 +106,10 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         FigureCanvasQTAgg.__init__(self, figure)
         self._drawRect = None
         self.child_conn = child_conn
+        
+        # accept keyboard focus (by clicking or tabbing) so that key presses
+        # (Escape, Backspace, modifiers) reach the interactive gate widgets
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         
         # set up the "working" pixmap
         self.working = False
@@ -201,7 +207,9 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
             if self.resize_width is not None:
                 logger.debug('FigureCanvasQTAggLocal.send_to_remote: {}'
                               .format((Msg.RESIZE_EVENT, self.resize_width, self.resize_height, self.figure.dpi)))
-                msg = (Msg.RESIZE_EVENT, (self.resize_width, self.resize_height, self.figure.dpi))
+                msg = (Msg.RESIZE_EVENT, (self.resize_width, 
+                                          self.resize_height, 
+                                          self.figure.dpi))
                 self.child_conn.send(msg)
                 self.resize_width = self.resize_height = None
 
@@ -225,6 +233,7 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         
         logger.debug('FigureCanvasQTAggLocal.mousePressEvent: {}'
                       .format(event.button()))
+        self.setFocus()
         x = event.pos().x() * self.device_pixel_ratio
         # flip y so y=0 is bottom of canvas
         y = (self.height() - event.pos().y()) * self.device_pixel_ratio
@@ -278,6 +287,35 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
             self.child_conn.send(msg)
 
 
+    def _key_payload(self, event):
+        key = self._get_key(event)
+        if key is None:
+            return None
+        pos = self.mapFromGlobal(QtGui.QCursor.pos())
+        x = pos.x() * self.device_pixel_ratio
+        y = (self.height() - pos.y()) * self.device_pixel_ratio
+        return (key, x, y)
+    
+    
+    def keyPressEvent(self, event):
+        """
+        Override the Qt event keyPressEvent, and forward it to the remote
+        canvas so that the interactive selectors see it.
+        """
+        payload = self._key_payload(event)
+        if payload is not None:
+            self.child_conn.send((Msg.KEY_PRESS_EVENT, payload))
+
+
+    def keyReleaseEvent(self, event):
+        """
+        Override the Qt event keyReleaseEvent
+        """
+        payload = self._key_payload(event)
+        if payload is not None:
+            self.child_conn.send((Msg.KEY_RELEASE_EVENT, payload))
+            
+            
     def resizeEvent(self, event):
         """
         Override the Qt event resizeEvent

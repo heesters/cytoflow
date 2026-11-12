@@ -38,7 +38,6 @@ import pandas as pd
 from traits.api import HasStrictTraits, Float, Str, Bool, Instance, \
     provides, observe, Any, Constant, Dict
 
-from matplotlib.widgets import RectangleSelector
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
@@ -47,6 +46,7 @@ from cytoflow.views import ScatterplotView, DensityView, ISelectionView
 
 from .i_operation import IOperation
 from .base_op_views import Op2DView
+from ._selectors import EasyRectangleSelector
 
 @provides(IOperation)
 class Range2DOp(HasStrictTraits):
@@ -295,7 +295,7 @@ class _RangeSelection2D(Op2DView):
     
     # internal state.
     _ax = Any(transient = True)
-    _selector = Instance(RectangleSelector, transient = True)
+    _selector = Instance(EasyRectangleSelector, transient = True)
     _box = Instance(Rectangle, transient = True)
     _patch_props = Dict()
 
@@ -337,7 +337,7 @@ class _RangeSelection2D(Op2DView):
         if self._box and self._box in self._ax.patches:
             self._box.remove()
             
-        if self.op.xlow and self.op.xhigh and self.op.ylow and self.op.yhigh:
+        if None not in (self.op.xlow, self.op.xhigh, self.op.ylow, self.op.yhigh):
             self._box = Rectangle((self.op.xlow, self.op.ylow), 
                                   (self.op.xhigh - self.op.xlow), 
                                   (self.op.yhigh - self.op.ylow), 
@@ -348,23 +348,48 @@ class _RangeSelection2D(Op2DView):
     @observe('interactive', post_init = True)
     def _interactive(self, _):
         if self._ax and self.interactive:
-            self._selector = RectangleSelector(
+            if self._selector:
+                self._selector.set_active(False)
+                
+            # interactive = True lets the user drag the corners and edges
+            # of an existing gate (or drag the whole box) to adjust it.
+            self._selector = EasyRectangleSelector(
                                 self._ax, 
-                                onselect=self._onselect, 
-                                props=dict(facecolor = 'none',
-                                           edgecolor = 'blue',
-                                           linewidth = 2),
+                                onselect = self._onselect, 
+                                interactive = True,
+                                drag_from_anywhere = True,
+                                grab_range = 15,
+                                props = dict(facecolor = 'blue',
+                                             edgecolor = 'blue',
+                                             alpha = 0.15,
+                                             linewidth = 2),
+                                handle_props = dict(markeredgecolor = 'blue',
+                                                    markerfacecolor = 'white'),
                                 useblit = True)
-        else:
+            
+            op = self.op
+            if None not in (op.xlow, op.xhigh, op.ylow, op.yhigh) \
+                and op.xhigh > op.xlow and op.yhigh > op.ylow:
+                self._selector.extents = (op.xlow, op.xhigh, op.ylow, op.yhigh)
+                self._selector._selection_completed = True
+                
+        elif self._selector:
+            self._selector.set_active(False)
             self._selector = None
         
     
     def _onselect(self, pos1, pos2): 
         """Update selection traits"""
-        self.op.xlow = min(pos1.xdata, pos2.xdata)
-        self.op.xhigh = max(pos1.xdata, pos2.xdata)
-        self.op.ylow = min(pos1.ydata, pos2.ydata)
-        self.op.yhigh = max(pos1.ydata, pos2.ydata)
+        xmin, xmax, ymin, ymax = self._selector.extents
+        
+        # ignore a click without a drag
+        if not (xmax > xmin and ymax > ymin):
+            return
+        
+        self.op.xlow = float(xmin)
+        self.op.xhigh = float(xmax)
+        self.op.ylow = float(ymin)
+        self.op.yhigh = float(ymax)
 
 
 @provides(ISelectionView)

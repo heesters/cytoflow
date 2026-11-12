@@ -23,6 +23,10 @@ Range Gate
 
 Draw a range gate.  To draw a new range, click-and-drag across the plot.
 
+To adjust an existing range, drag either of its edges, or drag the middle to
+move the whole range.  A single click (without dragging) leaves the 
+range unchanged.
+
 .. object:: Name
 
     The operation name.  Used to name the new metadata field that's created by 
