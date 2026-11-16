@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Undo / redo (Edit menu, Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z) for changes to
+  operation and view settings -- including gates drawn on the plot -- and
+  for adding or deleting operations.
+
 - Zoom and pan on plots: pinch / two-finger scroll on a trackpad, mouse
   wheel or Ctrl/Cmd+scroll to zoom. The zoom is kept while gates are
   adjusted (the plot is redrawn after every change); press 0 to reset.

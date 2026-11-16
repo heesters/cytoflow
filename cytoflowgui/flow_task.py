@@ -62,6 +62,7 @@ from .help_pane import HelpDockPane
 from .experiment_pane import ExperimentBrowserDockPane
 from .matplotlib_backend_local import FigureCanvasQTAggLocal
 from .workflow import LocalWorkflow
+from .workflow.undo import UndoManager
 from .workflow_controller import WorkflowController
 from .util import DefaultFileDialog
 from .workflow.serialization import save_yaml, load_yaml
@@ -156,6 +157,12 @@ class FlowTask(Task):
     plot_params_pane = Instance(PlotParamsPane)
     """The plot parameters dock pane"""
     
+    undo_manager = Instance(UndoManager)
+    """Undo / redo history"""
+    
+    can_undo = DelegatesTo('undo_manager')
+    can_redo = DelegatesTo('undo_manager')
+    
     # plugin lists, to setup the interface
     op_plugins = DelegatesTo('handler')
     """The operation plugins"""
@@ -181,6 +188,15 @@ class FlowTask(Task):
                                          accelerator='Ctrl+I'),   
                               PreferencesAction(),
                               id='File', name='&File'),
+                        SMenu(TaskAction(name='Undo',
+                                         method='on_undo',
+                                         accelerator='Ctrl+Z',
+                                         enabled_name='can_undo'),
+                              TaskAction(name='Redo',
+                                         method='on_redo',
+                                         accelerator='Ctrl+Shift+Z',
+                                         enabled_name='can_redo'),
+                              id='Edit', name='&Edit'),
                         SMenu(TaskToggleGroup(),
                               id = 'View', name = '&View'),
                         SMenu(TaskAction(name = 'Online documentation...',
@@ -270,6 +286,7 @@ class FlowTask(Task):
         self.window.central_pane.activate()
     
         self.model.modified = False
+        self.undo_manager.clear()
         
         if self.application.preferences_helper.first_run:
             self.application.preferences_helper.first_run = False
@@ -380,6 +397,7 @@ class FlowTask(Task):
         self.handler.add_operation('cytoflow.operations.import')
         
         self.model.modified = False
+        self.undo_manager.clear()
      
         
     def on_open(self):
@@ -514,6 +532,7 @@ class FlowTask(Task):
         else:
             self.model.workflow = new_workflow
             self.model.modified = False
+            self.undo_manager.clear()
             
         for wi in self.model.workflow:
             wi.lock.release()
@@ -560,6 +579,19 @@ class FlowTask(Task):
                 self.window.title = self.window.title[:-1]
         
 
+    def _undo_manager_default(self):
+        return UndoManager(model = self.model)
+    
+    def on_undo(self):
+        """Undo the last change to the workflow"""
+        self.undo_manager.undo()
+        self.model.modified = True
+        
+    def on_redo(self):
+        """Redo the last undone change"""
+        self.undo_manager.redo()
+        self.model.modified = True
+        
     def on_export(self):
         """
         Switch to the `ExportTask` task
