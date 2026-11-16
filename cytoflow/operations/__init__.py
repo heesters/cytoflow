@@ -55,6 +55,7 @@ from .register import RegistrationOp
 from .channel_stat import ChannelStatisticOp
 from .frame_stat import FrameStatisticOp
 from .xform_stat import TransformStatisticOp
+from .stat_test import StatisticalTestOp
  
 # TASBE
 from .autofluorescence import AutofluorescenceOp

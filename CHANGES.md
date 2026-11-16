@@ -15,6 +15,15 @@
 - Back-gating: scatter and density plots have a `highlight` setting
   ("Back-gate" in the GUI) that draws a gate's events on top of all events,
   in a contrasting color.
+- New **Statistical Test** operation (`StatisticalTestOp`): one-way ANOVA,
+  Kruskal-Wallis, Welch's t-test or Mann-Whitney U between the groups of a
+  condition, with an optional Tukey HSD post-hoc test (p-values adjusted
+  for multiple comparisons). Compares a statistic's replicates (eg the
+  per-well geometric mean between Dox concentrations) or, optionally, the
+  individual events, and reports effect sizes. Results are new statistics;
+  the plot shows group means +/- SEM with significance brackets. The
+  **Table View** can now show statistics whose index levels aren't
+  experimental conditions (eg the pairwise Tukey table).
 - Fix `BleedthroughLinearOp.set_from_fcs` reading the FCS spillover matrix
   transposed (so it compensated with the wrong coefficients).
 - Undo / redo (Edit menu, Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z) for changes to

@@ -171,7 +171,10 @@ class TableView(HasStrictTraits):
         names = list(data.index.names)
         for name in names:
             unique_values = data.index.get_level_values(name).unique()
-            if len(unique_values) == 1:
+            if len(unique_values) == 1 and name not in [self.row_facet,
+                                                        self.subrow_facet,
+                                                        self.column_facet,
+                                                        self.subcolumn_facet]:
                 warn("Only one value for level {}; dropping it.".format(name),
                      util.CytoflowViewWarning)
                 try:
@@ -196,11 +199,6 @@ class TableView(HasStrictTraits):
                                          "Must set column_facet before using "
                                          "subcolumn_facet")
             
-        if self.row_facet and self.row_facet not in experiment.conditions:
-            raise util.CytoflowViewError('row_facet',
-                                         "Row facet {} not in the experiment, "
-                                         "must be one of {}"
-                                         .format(self.row_facet, experiment.conditions))        
 
         if self.row_facet and self.row_facet not in data.index.names:
             raise util.CytoflowViewError('row_facet',
@@ -208,11 +206,6 @@ class TableView(HasStrictTraits):
                                          "must be one of {}"
                                          .format(self.row_facet, data.index.names))  
             
-        if self.subrow_facet and self.subrow_facet not in experiment.conditions:
-            raise util.CytoflowViewError('subrow_facet',
-                                         "Subrow facet {} not in the experiment, "
-                                         "must be one of {}"
-                                         .format(self.subrow_facet, experiment.conditions))  
             
         if self.subrow_facet and self.subrow_facet not in data.index.names:
             raise util.CytoflowViewError('subrow_facet',
@@ -220,11 +213,6 @@ class TableView(HasStrictTraits):
                                          "must be one of {}"
                                          .format(self.subrow_facet, data.index.names))  
             
-        if self.column_facet and self.column_facet not in experiment.conditions:
-            raise util.CytoflowViewError('column_facet',
-                                         "Column facet {} not in the experiment, "
-                                         "must be one of {}"
-                                         .format(self.column_facet, experiment.conditions))  
             
         if self.column_facet and self.column_facet not in data.index.names:
             raise util.CytoflowViewError('column_facet',
@@ -232,11 +220,6 @@ class TableView(HasStrictTraits):
                                          "must be one of {}"
                                          .format(self.column_facet, data.index.names)) 
             
-        if self.subcolumn_facet and self.subcolumn_facet not in experiment.conditions:
-            raise util.CytoflowViewError('subcolumn_facet',
-                                         "Subcolumn facet {} not in the experiment, "
-                                         "must be one of {}"
-                                         .format(self.subcolumn_facet, experiment.conditions))  
             
         if self.subcolumn_facet and self.subcolumn_facet not in data.index.names:
             raise util.CytoflowViewError('subcolumn_facet',
@@ -336,7 +319,11 @@ class TableView(HasStrictTraits):
                         agg_idx = tuple(agg_idx)
 
                         try:
-                            text = "{:g}".format(data.loc[agg_idx, self.feature])
+                            value = data.loc[agg_idx, self.feature]
+                            if isinstance(value, (bool, np.bool_)):
+                                text = str(bool(value))
+                            else:
+                                text = "{:g}".format(value)
                         except (TypeError, ValueError):
                             text = data.loc[agg_idx, self.feature]
                         except KeyError:
@@ -422,31 +409,6 @@ class TableView(HasStrictTraits):
                                          "Can't find the statistic {} in the experiment"
                                          .format(self.statistic))
         data = experiment.statistics[self.statistic]    
-            
-            
-        if self.row_facet and self.row_facet not in experiment.conditions:
-            raise util.CytoflowViewError('row_facet',
-                                         "Row facet {} not in the experiment, "
-                                         "must be one of {}"
-                                         .format(self.row_facet, experiment.conditions))       
-            
-        if self.subrow_facet and self.subrow_facet not in experiment.conditions:
-            raise util.CytoflowViewError('subrow_facet',
-                                         "Subrow facet {} not in the experiment, "
-                                         "must be one of {}"
-                                         .format(self.subrow_facet, experiment.conditions))  
-            
-        if self.column_facet and self.column_facet not in experiment.conditions:
-            raise util.CytoflowViewError('column_facet',
-                                         "Column facet {} not in the experiment, "
-                                         "must be one of {}"
-                                         .format(self.column_facet, experiment.conditions))
-            
-        if self.subcolumn_facet and self.subcolumn_facet not in experiment.conditions:
-            raise util.CytoflowViewError('subcolumn_facet',
-                                         "Subcolumn facet {} not in the experiment, "
-                                         "must be one of {}"
-                                         .format(self.subcolumn_facet, experiment.conditions)) 
         
         self._export_data(data, self.feature, filename)
     
@@ -468,7 +430,10 @@ class TableView(HasStrictTraits):
         names = list(data.index.names)
         for name in names:
             unique_values = data.index.get_level_values(name).unique()
-            if len(unique_values) == 1:
+            if len(unique_values) == 1 and name not in [self.row_facet,
+                                                        self.subrow_facet,
+                                                        self.column_facet,
+                                                        self.subcolumn_facet]:
                 warn("Only one value for level {}; dropping it.".format(name),
                      util.CytoflowViewWarning)
                 try:

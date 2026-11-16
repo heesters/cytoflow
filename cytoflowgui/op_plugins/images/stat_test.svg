@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Statistical test: two bars with error bars, joined by a significance bracket with a star -->
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500" version="1.1" id="svg2">
+  <g id="layer1">
+    <!-- axis -->
+    <path d="M 30,470 H 470" style="fill:none;stroke:#000000;stroke-width:14" />
+    <!-- bars -->
+    <rect x="70" y="330" width="130" height="140" style="fill:#0000ff;stroke:#000000;stroke-width:12" />
+    <rect x="300" y="210" width="130" height="260" style="fill:#0000ff;stroke:#000000;stroke-width:12" />
+    <!-- error bars -->
+    <path d="M 135,330 V 285 M 110,285 H 160" style="fill:none;stroke:#000000;stroke-width:12" />
+    <path d="M 365,210 V 165 M 340,165 H 390" style="fill:none;stroke:#000000;stroke-width:12" />
+    <!-- significance bracket -->
+    <path d="M 135,250 V 135 H 365 V 150" style="fill:none;stroke:#000000;stroke-width:14;stroke-linejoin:miter" />
+    <!-- star -->
+    <path d="M 250,20 L 263,58 L 303,58 L 271,82 L 283,120 L 250,97 L 217,120 L 229,82 L 197,58 L 237,58 Z"
+          style="fill:#ff0000;stroke:#000000;stroke-width:5;stroke-linejoin:round" />
+  </g>
+</svg>

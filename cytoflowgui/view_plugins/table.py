@@ -181,7 +181,7 @@ class TableHandler(ViewHandler):
         names = list(data.index.names)
         for name in names:
             unique_values = data.index.get_level_values(name).unique()
-            if len(unique_values) == 1:
+            if len(unique_values) == 1 and data.index.nlevels > 1:
                 data.index = data.index.droplevel(name)
         
         return list(data.index.names)
@@ -199,7 +199,7 @@ class TableHandler(ViewHandler):
         names = list(index.names)
         for name in names:
             unique_values = index.get_level_values(name).unique()
-            if len(unique_values) == 1:
+            if len(unique_values) == 1 and index.nlevels > 1:
                 index = index.droplevel(name)
 
         names = list(index.names)

@@ -50,6 +50,7 @@ from .xform_stat import TransformStatisticPlugin
 from .merge_stat import MergeStatisticsPlugin
 from .ratio import RatioPlugin
 from .scale_settings import ScaleSettingsPlugin
+from .stat_test import StatisticalTestPlugin
 
 # # data-driven
 from .binning import BinningPlugin

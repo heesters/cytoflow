@@ -97,6 +97,7 @@ from .operations.register import RegistrationOp
 from .operations.channel_stat import ChannelStatisticOp
 from .operations.frame_stat import FrameStatisticOp
 from .operations.xform_stat import TransformStatisticOp
+from .operations.stat_test import StatisticalTestOp
 
 # misc
 from .operations.binning import BinningOp

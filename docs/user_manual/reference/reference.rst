@@ -197,6 +197,11 @@ Statistics and Transforms
 		:img-top: operations/images/ratio.svg
 		:link: operations/ratio
 		:link-type: doc
+
+	.. grid-item-card:: Statistical Test
+		:img-top: /operations/stat_test-1.png
+		:link: operations/stat_test
+		:link-type: doc
 	
 	.. grid-item-card:: Axis Transforms
 		:class-card: gallery-card

@@ -39,6 +39,7 @@ from .xform_stat import TransformStatisticWorkflowOp
 from .merge_stat import MergeStatisticsWorkflowOp
 from .ratio import RatioWorkflowOp
 from .scale_settings import ScaleSettingsWorkflowOp
+from .stat_test import StatisticalTestWorkflowOp, StatisticalTestWorkflowView
 
 from .binning import BinningWorkflowOp, BinningWorkflowView
 from .gaussian_1d import GaussianMixture1DWorkflowOp, GaussianMixture1DWorkflowView
