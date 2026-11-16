@@ -76,3 +76,5 @@ from .hierarchy import HierarchyOp
 from .category import CategoryOp
 from .boolean_gate import BooleanGateOp
 
+from .gatingml import export_gatingml, import_gatingml, import_flowjo_workspace
+

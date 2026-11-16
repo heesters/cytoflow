@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A SYNTHETIC FlowJo 10 workspace, written by hand (well, by a script) to test
+  cytoflow.import_flowjo_workspace.  It follows the structure of a real
+  workspace, but it was NOT saved by FlowJo.
+-->
+<Workspace version="20.0" modDate="Mon Nov 16 12:00:00 EST 2026" flowJoVersion="10.8.1" curGroup="All Samples" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gating="http://www.isac-net.org/std/Gating-ML/v2.0/gating" xmlns:transforms="http://www.isac-net.org/std/Gating-ML/v2.0/transformations" xmlns:data-type="http://www.isac-net.org/std/Gating-ML/v2.0/datatypes" xsi:schemaLocation="http://www.isac-net.org/std/Gating-ML/v2.0/gating http://www.isac-net.org/std/Gating-ML/v2.0/gating/Gating-ML.v2.0.xsd" nonAutoSaveFileName="synthetic.wsp">
+  <Groups>
+    <GroupNode name="All Samples" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10">
+      <Group name="All Samples">
+        <SampleRefs><SampleRef sampleID="1"/><SampleRef sampleID="2"/></SampleRefs>
+      </Group>
+    </GroupNode>
+    <GroupNode name="Test group" annotation="" owningGroup="Test group" expanded="1" sortPriority="10">
+      <Group name="Test group">
+        <SampleRefs><SampleRef sampleID="2"/></SampleRefs>
+      </Group>
+      <Subpopulations>
+        <Population name="GroupGate" annotation="" owningGroup="Test group" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID16">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="-1" gateResolution="256">
+            <gating:dimension gating:min="30.0" gating:max="40000.0"><data-type:fcs-dimension data-type:name="FSC-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        
+      </Subpopulations>
+    </GroupNode>
+    <GroupNode name="Empty group" annotation="" owningGroup="Empty group" expanded="1" sortPriority="10">
+      <Group name="Empty group"><SampleRefs/></Group>
+    </GroupNode>
+  </Groups>
+  <SampleList>
+    <Sample>
+      <DataSet uri="file:RFP_Well_A3.fcs" sampleID="1"/>
+      <transforms:spilloverMatrix spectral="0" prefix="Comp-" name="Identity" editable="1" color="#00ccff" version="FlowJo-10.8.1" status="FINALIZED" transforms:id="m1" suffix="">
+        <data-type:parameters><data-type:parameter data-type:name="V2-A" userProvidedCompInfix="Comp-V2-A"/><data-type:parameter data-type:name="Y2-A" userProvidedCompInfix="Comp-Y2-A"/><data-type:parameter data-type:name="B1-A" userProvidedCompInfix="Comp-B1-A"/></data-type:parameters>
+        <transforms:spillover data-type:parameter="V2-A" userProvidedCompInfix="Comp-V2-A"><transforms:coefficient data-type:parameter="V2-A" transforms:value="1"/><transforms:coefficient data-type:parameter="Y2-A" transforms:value="0"/><transforms:coefficient data-type:parameter="B1-A" transforms:value="0"/></transforms:spillover>
+        <transforms:spillover data-type:parameter="Y2-A" userProvidedCompInfix="Comp-Y2-A"><transforms:coefficient data-type:parameter="V2-A" transforms:value="0"/><transforms:coefficient data-type:parameter="Y2-A" transforms:value="1"/><transforms:coefficient data-type:parameter="B1-A" transforms:value="0"/></transforms:spillover>
+        <transforms:spillover data-type:parameter="B1-A" userProvidedCompInfix="Comp-B1-A"><transforms:coefficient data-type:parameter="V2-A" transforms:value="0"/><transforms:coefficient data-type:parameter="Y2-A" transforms:value="0"/><transforms:coefficient data-type:parameter="B1-A" transforms:value="1"/></transforms:spillover>
+        </transforms:spilloverMatrix>
+      <Transformations>
+        <transforms:linear gain="1" transforms:minRange="0" transforms:maxRange="65536"><data-type:parameter data-type:name="FSC-A"/></transforms:linear>
+        <transforms:log transforms:offset="1" transforms:decades="5.418539922"><data-type:parameter data-type:name="SSC-A"/></transforms:log>
+        <transforms:biex transforms:length="256" transforms:maxRange="262144" transforms:neg="0" transforms:width="-100" transforms:pos="4.42"><data-type:parameter data-type:name="V2-A"/></transforms:biex>
+        <transforms:logicle transforms:length="256" transforms:T="262144" transforms:A="0" transforms:W="0.5" transforms:M="4.5"><data-type:parameter data-type:name="Y2-A"/></transforms:logicle>
+        <transforms:fasinh transforms:length="256" transforms:maxRange="262144" transforms:T="262144" transforms:A="0" transforms:M="5" transforms:W="0"><data-type:parameter data-type:name="B1-A"/></transforms:fasinh>
+        <transforms:biex transforms:length="256" transforms:maxRange="262144" transforms:neg="0" transforms:width="-100" transforms:pos="4.42"><data-type:parameter data-type:name="Comp-V2-A"/></transforms:biex>
+        <transforms:logicle transforms:length="256" transforms:T="262144" transforms:A="0" transforms:W="0.5" transforms:M="4.5"><data-type:parameter data-type:name="Comp-Y2-A"/></transforms:logicle>
+        <transforms:fasinh transforms:length="256" transforms:maxRange="262144" transforms:T="262144" transforms:A="0" transforms:M="5" transforms:W="0"><data-type:parameter data-type:name="Comp-B1-A"/></transforms:fasinh>
+        
+      </Transformations>
+      <Keywords>
+        <Keyword name="$FIL" value="RFP_Well_A3.fcs"/>
+        <Keyword name="$TOT" value="10000"/>
+      </Keywords>
+      <SampleNode name="RFP_Well_A3.fcs" annotation="" owningGroup="" expanded="1" sortPriority="10" count="10000" sampleID="1">
+        <Subpopulations>
+        <Population name="Cells" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID15">
+          <gating:PolygonGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" quadId="-1" gateResolution="256">
+            <gating:dimension><data-type:fcs-dimension data-type:name="FSC-A"/></gating:dimension><gating:dimension><data-type:fcs-dimension data-type:name="SSC-A"/></gating:dimension>
+            <gating:vertex><gating:coordinate data-type:value="20.0"/><gating:coordinate data-type:value="300.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="20.0"/><gating:coordinate data-type:value="20000.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="20000.0"/><gating:coordinate data-type:value="90000.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="50000.0"/><gating:coordinate data-type:value="90000.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="50000.0"/><gating:coordinate data-type:value="2000.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="2000.0"/><gating:coordinate data-type:value="300.0"/></gating:vertex>
+          </gating:PolygonGate>
+          </Gate>
+          <Subpopulations>
+        <Population name="Singlets" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID14">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="-1" gateResolution="256">
+            <gating:dimension gating:min="30.0" gating:max="40000.0"><data-type:fcs-dimension data-type:name="FSC-A"/></gating:dimension><gating:dimension gating:min="400.0" gating:max="60000.0"><data-type:fcs-dimension data-type:name="SSC-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          <Subpopulations>
+        <Population name="Y2+" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID1">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="-1" gateResolution="256">
+            <gating:dimension gating:min="300.0"><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        <Population name="Y2-" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID2">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="-1" gateResolution="256">
+            <gating:dimension gating:max="300.0"><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        <Population name="Bright" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID4">
+          <gating:PolygonGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" quadId="-1" gateResolution="256">
+            <gating:dimension><data-type:fcs-dimension data-type:name="Comp-V2-A"/></gating:dimension><gating:dimension><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+            <gating:vertex><gating:coordinate data-type:value="23.4"/><gating:coordinate data-type:value="5158.7"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="102.2"/><gating:coordinate data-type:value="23124.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="510.9"/><gating:coordinate data-type:value="23124.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="1089.5"/><gating:coordinate data-type:value="3800.3"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="340.5"/><gating:coordinate data-type:value="801.9"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="65.4"/><gating:coordinate data-type:value="1119.3"/></gating:vertex>
+          </gating:PolygonGate>
+          </Gate>
+          <Subpopulations>
+        <Population name="Sub" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID3">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="-1" gateResolution="256">
+            <gating:dimension gating:min="50.0" gating:max="2000.0"><data-type:fcs-dimension data-type:name="Comp-B1-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        </Subpopulations>
+        </Population>
+        <Population name="Ell" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID5">
+          <gating:EllipsoidGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" quadId="-1" gateResolution="256">
+            <gating:dimension><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension><gating:dimension><data-type:fcs-dimension data-type:name="Comp-B1-A"/></gating:dimension>
+            <gating:foci><gating:vertex><gating:coordinate data-type:value="65.0"/><gating:coordinate data-type:value="64.01923788646684"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="155.0"/><gating:coordinate data-type:value="115.98076211353316"/></gating:vertex></gating:foci>
+            <gating:edge><gating:vertex><gating:coordinate data-type:value="58.03847577293368"/><gating:coordinate data-type:value="60.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="161.96152422706632"/><gating:coordinate data-type:value="120.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="125.0"/><gating:coordinate data-type:value="64.01923788646684"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="95.0"/><gating:coordinate data-type:value="115.98076211353316"/></gating:vertex></gating:edge>
+          </gating:EllipsoidGate>
+          </Gate>
+          
+        </Population>
+        <Population name="EllLin" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID6">
+          <gating:EllipsoidGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" quadId="-1" gateResolution="256">
+            <gating:dimension><data-type:fcs-dimension data-type:name="FSC-A"/></gating:dimension><gating:dimension><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+            <gating:foci><gating:vertex><gating:coordinate data-type:value="1.7302580422992406"/><gating:coordinate data-type:value="51.19662610418569"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="10.26974195770076"/><gating:coordinate data-type:value="148.8033738958143"/></gating:vertex></gating:foci>
+            <gating:edge><gating:vertex><gating:coordinate data-type:value="1.642212862617093"/><gating:coordinate data-type:value="50.19026509541272"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="10.357787137382907"/><gating:coordinate data-type:value="149.8097349045873"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="15.961946980917455"/><gating:coordinate data-type:value="99.12844257252343"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="-3.961946980917455"/><gating:coordinate data-type:value="100.87155742747657"/></gating:vertex></gating:edge>
+          </gating:EllipsoidGate>
+          </Gate>
+          
+        </Population>
+        <Population name="Outside" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID7">
+          <gating:PolygonGate eventsInside="0" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" quadId="-1" gateResolution="256">
+            <gating:dimension><data-type:fcs-dimension data-type:name="Comp-V2-A"/></gating:dimension><gating:dimension><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+            <gating:vertex><gating:coordinate data-type:value="-50.0"/><gating:coordinate data-type:value="50.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="300.0"/><gating:coordinate data-type:value="50.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="300.0"/><gating:coordinate data-type:value="3000.0"/></gating:vertex><gating:vertex><gating:coordinate data-type:value="-50.0"/><gating:coordinate data-type:value="3000.0"/></gating:vertex>
+          </gating:PolygonGate>
+          </Gate>
+          
+        </Population>
+        <Population name="Q1: Comp-V2-A- , Comp-Y2-A+" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID8">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="0" gateResolution="256">
+            <gating:dimension gating:max="100.0"><data-type:fcs-dimension data-type:name="Comp-V2-A"/></gating:dimension><gating:dimension gating:min="1000.0"><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        <Population name="Q2: Comp-V2-A+ , Comp-Y2-A+" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID9">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="1" gateResolution="256">
+            <gating:dimension gating:min="100.0"><data-type:fcs-dimension data-type:name="Comp-V2-A"/></gating:dimension><gating:dimension gating:min="1000.0"><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        <Population name="Q3: Comp-V2-A+ , Comp-Y2-A-" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID10">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="2" gateResolution="256">
+            <gating:dimension gating:min="100.0"><data-type:fcs-dimension data-type:name="Comp-V2-A"/></gating:dimension><gating:dimension gating:max="1000.0"><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        <Population name="Q4: Comp-V2-A- , Comp-Y2-A-" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID11">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="3" gateResolution="256">
+            <gating:dimension gating:max="100.0"><data-type:fcs-dimension data-type:name="Comp-V2-A"/></gating:dimension><gating:dimension gating:max="1000.0"><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        <Population name="Curly" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID13">
+          <gating:CurlyQuad eventsInside="1" quadId="-1" gateResolution="256">
+            <gating:dimension><data-type:fcs-dimension data-type:name="Comp-V2-A"/></gating:dimension><gating:dimension><data-type:fcs-dimension data-type:name="Comp-Y2-A"/></gating:dimension>
+            <gating:vertex><gating:coordinate data-type:value="100.0"/><gating:coordinate data-type:value="1000.0"/></gating:vertex>
+          </gating:CurlyQuad>
+          </Gate>
+          <Subpopulations>
+        <Population name="CurlyChild" annotation="" owningGroup="All Samples" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID12">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="-1" gateResolution="256">
+            <gating:dimension gating:min="50.0" gating:max="2000.0"><data-type:fcs-dimension data-type:name="Comp-B1-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        </Subpopulations>
+        </Population>
+        <NotNode name="NotEll" annotation="" owningGroup="All Samples" expanded="0" sortPriority="10" count="-1">
+          <Dependents><Dependent name="Cells/Singlets/Ell"/></Dependents>
+        </NotNode>
+        <OrNode name="Either" annotation="" owningGroup="All Samples" expanded="0" sortPriority="10" count="-1">
+          <Dependents><Dependent name="Cells/Singlets/Bright"/><Dependent name="Cells/Singlets/Ell"/></Dependents>
+        </OrNode>
+        <AndNode name="Both" annotation="" owningGroup="All Samples" expanded="0" sortPriority="10" count="-1">
+          <Dependents><Dependent name="Cells/Singlets/Bright"/><Dependent name="Cells/Singlets/Y2+"/></Dependents>
+        </AndNode>
+        </Subpopulations>
+        </Population>
+        </Subpopulations>
+        </Population>
+        
+        </Subpopulations>
+      </SampleNode>
+    </Sample>
+    <Sample>
+      <DataSet uri="file:CFP_Well_A4.fcs" sampleID="2"/>
+      <Transformations>
+        <transforms:linear gain="1" transforms:minRange="0" transforms:maxRange="65536"><data-type:parameter data-type:name="FSC-A"/></transforms:linear>
+        <transforms:log transforms:offset="1" transforms:decades="5.418539922"><data-type:parameter data-type:name="SSC-A"/></transforms:log>
+        <transforms:biex transforms:length="256" transforms:maxRange="262144" transforms:neg="0" transforms:width="-100" transforms:pos="4.42"><data-type:parameter data-type:name="V2-A"/></transforms:biex>
+        <transforms:logicle transforms:length="256" transforms:T="262144" transforms:A="0" transforms:W="0.5" transforms:M="4.5"><data-type:parameter data-type:name="Y2-A"/></transforms:logicle>
+        <transforms:fasinh transforms:length="256" transforms:maxRange="262144" transforms:T="262144" transforms:A="0" transforms:M="5" transforms:W="0"><data-type:parameter data-type:name="B1-A"/></transforms:fasinh>
+        <transforms:biex transforms:length="256" transforms:maxRange="262144" transforms:neg="0" transforms:width="-100" transforms:pos="4.42"><data-type:parameter data-type:name="Comp-V2-A"/></transforms:biex>
+        <transforms:logicle transforms:length="256" transforms:T="262144" transforms:A="0" transforms:W="0.5" transforms:M="4.5"><data-type:parameter data-type:name="Comp-Y2-A"/></transforms:logicle>
+        <transforms:fasinh transforms:length="256" transforms:maxRange="262144" transforms:T="262144" transforms:A="0" transforms:M="5" transforms:W="0"><data-type:parameter data-type:name="Comp-B1-A"/></transforms:fasinh>
+        
+      </Transformations>
+      <Keywords>
+        <Keyword name="$FIL" value="CFP_Well_A4.fcs"/>
+      </Keywords>
+      <SampleNode name="CFP_Well_A4.fcs" annotation="" owningGroup="" expanded="1" sortPriority="10" count="10000" sampleID="2">
+        <Subpopulations>
+        <Population name="GroupGate" annotation="" owningGroup="Test group" expanded="1" sortPriority="10" count="-1">
+          <Gate gating:id="ID16">
+          <gating:RectangleGate eventsInside="1" annoOffsetX="0" annoOffsetY="0" tint="#000000" isTinted="0" lineWeight="Normal" userDefined="1" percentX="0" percentY="0" quadId="-1" gateResolution="256">
+            <gating:dimension gating:min="30.0" gating:max="40000.0"><data-type:fcs-dimension data-type:name="FSC-A"/></gating:dimension>
+          </gating:RectangleGate>
+          </Gate>
+          
+        </Population>
+        
+        </Subpopulations>
+      </SampleNode>
+    </Sample>
+  </SampleList>
+</Workspace>

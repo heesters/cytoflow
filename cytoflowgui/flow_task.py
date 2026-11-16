@@ -48,7 +48,7 @@ from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction, TaskT
 # from pyface.tasks.action.dock_pane_toggle_group import DockPaneToggleGroup, DockPaneToggleAction, ActionItem
 from pyface.api import (FileDialog, ImageResource, AboutDialog,  # @UnresolvedImport
                         confirm, OK, YES, ConfirmationDialog, warning,  # @UnresolvedImport
-                        error, MessageDialog)  # @UnresolvedImport
+                        error, MessageDialog, information)  # @UnresolvedImport
 from pyface.qt import QtGui
 
 from envisage.ui.tasks.api import TaskFactory
@@ -66,6 +66,10 @@ from .workflow.undo import UndoManager
 from .workflow_controller import WorkflowController
 from .util import DefaultFileDialog
 from .workflow.serialization import save_yaml, load_yaml
+from .gate_interchange import import_gates, export_gates, is_flowjo_workspace
+
+import cytoflow.utility as util
+from cytoflow.operations.gatingml import flowjo_workspace_samples
 
 
 @provides(ITaskPane)
@@ -186,6 +190,10 @@ class FlowTask(Task):
                               TaskAction(name='Export Jupyter notebook...',
                                          method='on_notebook',
                                          accelerator='Ctrl+I'),   
+                              TaskAction(name='Import gates...',
+                                         method='on_import_gates'),
+                              TaskAction(name='Export gates (Gating-ML)...',
+                                         method='on_export_gates'),
                               PreferencesAction(),
                               id='File', name='&File'),
                         SMenu(TaskAction(name='Undo',
@@ -613,6 +621,91 @@ class FlowTask(Task):
                                                FileDialog.create_wildcard("All files", "*")))  # @UndefinedVariable
         if dialog.open() == OK:
             self.save_notebook(self.model.workflow, dialog.path)
+
+            
+    def on_import_gates(self):
+        """
+        Shows a dialog to import gates from a Gating-ML file or a FlowJo
+        workspace, then adds them to the end of the workflow.
+        """
+        
+        dialog = FileDialog(parent = self.window.control, 
+                            action = 'open',
+                            wildcard = (FileDialog.create_wildcard("Gating-ML or FlowJo workspace", "*.xml *.gml *.gatingml *.wsp") + ';' + #@UndefinedVariable
+                                        FileDialog.create_wildcard("All files", "*")))  # @UndefinedVariable
+        if dialog.open() != OK:
+            return
+        
+        path = dialog.path
+        sample = group = None
+        
+        try:
+            if is_flowjo_workspace(path):
+                # FlowJo has a set of gates for each sample; we have one.
+                samples, groups = flowjo_workspace_samples(path)
+                choices = (["Sample: " + s for s in samples] + 
+                           ["Group: " + g for g in groups])
+                if not choices:
+                    raise util.CytoflowError("There aren't any samples in {}".format(path))
+                if len(samples) > 1:
+                    choice, ok = QtGui.QInputDialog.getItem(self.window.control,
+                                                            "Import gates",
+                                                            "Import the gates from which sample or group?",
+                                                            choices, 0, False)
+                    if not ok:
+                        return
+                    if choice.startswith("Sample: "):
+                        # there may be two samples with the same name
+                        sample = samples[choices.index(choice)]
+                    else:
+                        group = choice[len("Group: "):]
+                        
+            new_items, warns = import_gates(self.model, path, sample = sample, group = group)
+        except Exception as e:
+            error(None, "Couldn't import gates from {}:\n\n{}".format(path, str(e)))
+            return
+        
+        if new_items:
+            self.model.modified = True
+            self.model.selected = new_items[-1]
+            if new_items[-1].default_view:
+                self.handler.activate_view(new_items[-1].default_view.id)
+            
+        msg = "Imported {} operation{} from {}".format(len(new_items),
+                                                       "" if len(new_items) == 1 else "s",
+                                                       path)
+        if warns:
+            warning(None, msg + "\n\n" + "\n\n".join(warns))
+        else:
+            information(None, msg)
+
+            
+    def on_export_gates(self):
+        """
+        Shows a dialog to export the workflow's gates to a Gating-ML file
+        """
+        
+        dialog = DefaultFileDialog(parent = self.window.control,
+                                   action = 'save as',
+                                   default_suffix = "xml",
+                                   wildcard = (FileDialog.create_wildcard("Gating-ML", "*.xml") + ';' + #@UndefinedVariable  
+                                               FileDialog.create_wildcard("All files", "*")))  # @UndefinedVariable
+        if dialog.open() != OK:
+            return
+        
+        try:
+            exported, warns = export_gates(self.model, dialog.path)
+        except Exception as e:
+            error(None, "Couldn't export gates to {}:\n\n{}".format(dialog.path, str(e)))
+            return
+        
+        msg = "Exported {} gate{} to {}".format(len(exported),
+                                                "" if len(exported) == 1 else "s",
+                                                dialog.path)
+        if warns:
+            warning(None, msg + "\n\n" + "\n\n".join(warns))
+        else:
+            information(None, msg)
 
     
     def on_prefs(self):

@@ -111,6 +111,10 @@ from .operations.hierarchy import HierarchyOp
 from .operations.category import CategoryOp
 from .operations.boolean_gate import BooleanGateOp
 
+# gate interchange
+from .operations.gatingml import (export_gatingml, import_gatingml, 
+                                  import_flowjo_workspace)
+
 # views
 from .views.histogram import HistogramView
 from .views.scatterplot import ScatterplotView

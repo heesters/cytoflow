@@ -18,6 +18,7 @@ something that you find confusing, please feel free to submit a bug report
    beads
    tasbe
    export_fcs
+   gate_interchange
    export
    by
    error_bars

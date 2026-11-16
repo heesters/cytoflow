@@ -11,6 +11,12 @@
   spillover matrix from single-color controls without gating positive and
   negative populations (robust regression + iterative refinement; a Python
   port of the AutoSpill R package, Roca et al. 2021), then compensate.
+- Exchange gates with other software: export a workflow's gates to
+  Gating-ML 2.0 and import gates from Gating-ML files and FlowJo 10 workspaces
+  (`export_gatingml`, `import_gatingml`, `import_flowjo_workspace`;
+  "Import gates..." and "Export gates (Gating-ML)..." in the GUI's File menu).
+  Nested gates become a gate plus a Boolean Gate (`X_gated`); compensation is
+  not exchanged. See the new how-to page.
 - "Magnetic" gates: polygon, freehand and ellipse gates can be adjusted per
   sample (`adjust_by`, "Adjust Per" in the GUI) -- the gate shifts to follow
   the population in each tube / well, up to `max_adjust` of its size.
