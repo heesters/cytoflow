@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Histogram overlays: "normalize to mode" (each histogram's peak = 100%)
+  and staggered (offset) overlays, in the library and the GUI.
 - Back-gating: scatter and density plots have a `highlight` setting
   ("Back-gate" in the GUI) that draws a gate's events on top of all events,
   in a contrasting color.

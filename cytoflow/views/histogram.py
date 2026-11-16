@@ -106,6 +106,17 @@ class HistogramView(Base1DView):
             
         alpha : float (default = 0.5)
             The alpha blending value, between 0 (transparent) and 1 (opaque).
+            
+        normalize_to_mode : bool (default = False)
+            Scale each histogram so its tallest bin is 100% ("% of max", 
+            like FlowJo's "normalize to mode"). Useful for comparing the 
+            *shape* of overlaid histograms with different numbers of events.
+            
+        offset : float (default = 0)
+            Stagger overlaid histograms (one per `huefacet` value) vertically,
+            by this fraction of the tallest histogram, so they don't hide 
+            each other.  Eg, 0.5.  Usually combined with 
+            ``normalize_to_mode``.
     
             
         Notes
@@ -114,7 +125,10 @@ class HistogramView(Base1DView):
 
         
         """
-        ylabel = 'Density' if kwargs.get('density', False) else 'Count'
+        if kwargs.get('normalize_to_mode', False):
+            ylabel = '% of max'
+        else:
+            ylabel = 'Density' if kwargs.get('density', False) else 'Count'
         if kwargs.get('orientation', 'vertical') == 'vertical':
             kwargs.setdefault('xlabel', self.channel)
             kwargs.setdefault('ylabel', ylabel)
@@ -186,6 +200,18 @@ class HistogramView(Base1DView):
         # we don't have to compute the histogram multiple times
         count_max = []
         
+        normalize_to_mode = kwargs.pop('normalize_to_mode', False)
+        offset = kwargs.pop('offset', 0) or 0
+        if normalize_to_mode and kwargs.get('density'):
+            raise util.CytoflowViewError(None,
+                                         "Can't set both 'density' and 'normalize_to_mode'")
+        if offset < 0:
+            raise util.CytoflowViewError(None, "'offset' must be >= 0")
+            
+        # how many histograms have been drawn on each axes (for the offset)
+        n_drawn = {}
+        tops = []
+        
         def hist_lims(*args, **kwargs):
             # there's some bug in the above code where we get data that isn't
             # in the range of `bins`, which makes hist() puke.  so get rid
@@ -198,7 +224,27 @@ class HistogramView(Base1DView):
                 x = x[x < bins[-1]]
                 new_args.append(x)
                 
-            if scale.name != "linear" and kwargs.get("density"):
+            if normalize_to_mode or offset:
+                counts, _ = np.histogram(new_args[0], bins = kwargs["bins"])
+                counts = counts.astype(float)
+                if normalize_to_mode and counts.max() > 0:
+                    counts = counts / counts.max() * 100.0
+                kwargs["weights"] = counts
+                if offset:
+                    ax = plt.gca()
+                    i = n_drawn.get(ax, 0)
+                    n_drawn[ax] = i + 1
+                    kwargs["bottom"] = i * offset * (100.0 if normalize_to_mode else counts_max_all)
+                    # draw the later (higher) ones behind
+                    kwargs["zorder"] = 10 - i
+                    # the count axis doesn't mean much any more
+                    if kwargs.get("orientation", "vertical") == "vertical":
+                        ax.tick_params(axis = 'y', labelleft = False)
+                    else:
+                        ax.tick_params(axis = 'x', labelbottom = False)
+                n, _, _ = plt.hist(kwargs["bins"][:-1], **kwargs)
+                tops.append(max(n) + (kwargs.get("bottom") or 0))
+            elif scale.name != "linear" and kwargs.get("density"):
                 kwargs["density"] = False
                 counts, _ = np.histogram(new_args, bins=kwargs["bins"])
                 kwargs["weights"] = counts / np.sum(counts)
@@ -207,18 +253,34 @@ class HistogramView(Base1DView):
                 n, _, _ = plt.hist(*new_args, **kwargs)
 
             count_max.append(max(n))
+            
+        # with an un-normalized offset, stagger by a fraction of the 
+        # largest bin count across all the histograms
+        counts_max_all = 0
+        if offset and not normalize_to_mode:
+            for _, data_ijk in grid.facet_data():
+                if self.huefacet:
+                    groups = [g for _, g in data_ijk.groupby(self.huefacet, observed = True)]
+                else:
+                    groups = [data_ijk]
+                for g in groups:
+                    if len(g):
+                        c, _ = np.histogram(g[self.channel], bins = kwargs['bins'])
+                        counts_max_all = max(counts_max_all, c.max())
                     
         grid.map(hist_lims, self.channel, **kwargs)
+        
+        top = max(tops) if tops else max(count_max)
         
         ret = {}
         if kwargs['orientation'] == 'vertical':
             ret['xscale'] = scale
             ret['xlim'] = lim
-            ret['ylim'] = (0, 1.05 * max(count_max))
+            ret['ylim'] = (0, 1.05 * top)
         else:
             ret['yscale'] = scale
             ret['ylim'] = lim
-            ret['xlim'] = (0, 1.05 * max(count_max))
+            ret['xlim'] = (0, 1.05 * top)
             
         return ret
 

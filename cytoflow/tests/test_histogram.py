@@ -26,7 +26,8 @@ Created on Mar 5, 2018
 import unittest
 import cytoflow as flow
 
-from .test_base import View1DTestBase
+from .test_base import View1DTestBase, ImportedDataTest
+import cytoflow.utility as util
 
 class TestHistogram(View1DTestBase, unittest.TestCase):
 
@@ -62,3 +63,46 @@ class TestHistogram(View1DTestBase, unittest.TestCase):
 if __name__ == "__main__":
     import sys;sys.argv = ['', 'TestHistogram.testLogicleScale']
     unittest.main()
+
+
+class TestHistogramOverlays(ImportedDataTest):
+    """normalize_to_mode and offset"""
+    
+    def setUp(self):
+        super().setUp()
+        self.view = flow.HistogramView(channel = "Y2-A", scale = "logicle",
+                                       huefacet = "Dox")
+        
+    def tearDown(self):
+        import matplotlib.pyplot as plt
+        plt.close('all')
+        
+    def _patches(self):
+        import matplotlib.pyplot as plt
+        return [p for p in plt.gca().patches]
+
+    def testNormalizeToMode(self):
+        import matplotlib.pyplot as plt
+        self.view.plot(self.ex, normalize_to_mode = True, histtype = 'step')
+        ax = plt.gca()
+        self.assertEqual(ax.get_ylabel(), '% of max')
+        for p in self._patches():
+            self.assertAlmostEqual(p.get_path().vertices[:, 1].max(), 100.0)
+            
+    def testOffset(self):
+        self.view.plot(self.ex, normalize_to_mode = True, offset = 0.5, histtype = 'step')
+        bottoms = sorted(p.get_path().vertices[:, 1].min() for p in self._patches())
+        self.assertEqual(len(bottoms), len(self.ex.conditions["Dox"]))
+        for i, b in enumerate(bottoms):
+            self.assertAlmostEqual(b, i * 50.0)
+            
+    def testOffsetCounts(self):
+        self.view.plot(self.ex, offset = 0.5)
+        
+    def testOffsetHorizontal(self):
+        self.view.plot(self.ex, offset = 0.5, orientation = 'horizontal', 
+                       normalize_to_mode = True)
+            
+    def testDensityAndMode(self):
+        with self.assertRaises(util.CytoflowViewError):
+            self.view.plot(self.ex, density = True, normalize_to_mode = True)

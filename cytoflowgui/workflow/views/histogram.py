@@ -43,6 +43,8 @@ class HistogramPlotParams(Data1DPlotParams):
     linewidth = util.PositiveCFloat(None, allow_none = True, allow_zero = True)
     density = Bool(False)
     alpha = util.PositiveCFloat(0.5, allow_zero = True)
+    normalize_to_mode = Bool(False)
+    offset = util.PositiveCFloat(0.0, allow_zero = True)
     
     
 @provides(IWorkflowView)
@@ -184,6 +186,44 @@ def _dump_params_v3(params):
                 linewidth = params.linewidth,
                 density = params.density,
                 alpha = params.alpha)
+    
+@camel_registry.dumper(HistogramPlotParams, 'histogram-params', version = 5)
+def _dump_params_v5(params):
+    return dict(
+                # BasePlotParams
+                title = params.title,
+                xlabel = params.xlabel,
+                ylabel = params.ylabel,
+                huelabel = params.huelabel,
+                col_wrap = params.col_wrap,
+                sns_style = params.sns_style,
+                sns_context = params.sns_context,
+                palette = params.palette,
+                legend = params.legend,
+                legend_loc = params.legend_loc,
+                sharex = params.sharex,
+                sharey = params.sharey,
+                margin_titles = params.margin_titles,
+                despine = params.despine,
+
+                # DataplotParams
+                min_quantile = params.min_quantile,
+                max_quantile = params.max_quantile,
+                
+                # Data1DPlotParams
+                lim = params.lim,
+                orientation = params.orientation,
+                
+                # Histogram
+                num_bins = params.num_bins,
+                histtype = params.histtype,
+                linestyle = params.linestyle,
+                linewidth = params.linewidth,
+                density = params.density,
+                alpha = params.alpha,
+                normalize_to_mode = params.normalize_to_mode,
+                offset = params.offset)
+    
     
 @camel_registry.dumper(HistogramPlotParams, 'histogram-params', version = 4)
 def _dump_params_v4(params):

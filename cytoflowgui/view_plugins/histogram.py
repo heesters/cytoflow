@@ -23,6 +23,12 @@ Histogram
 
 Plots a histogram.
 
+To overlay samples, set **Color Facet** to the condition that distinguishes
+them.  In the plot parameters, **Normalize to mode** scales each histogram so
+its peak is 100% (to compare shapes when the samples have different numbers 
+of events), and **Stagger overlays** offsets them vertically so they don't 
+hide each other (eg, 0.5).
+
 .. object:: Channel
 
     The channel for the plot.
@@ -101,6 +107,14 @@ class HistogramParamsHandler(Controller):
                                       placeholder = "None",
                                       format_func = lambda x: "" if x is None else str(x))),
              Item('density'),
+             Item('normalize_to_mode',
+                  label = "Normalize\nto mode",
+                  tooltip = "Scale each histogram so its peak is 100%"),
+             Item('offset',
+                  editor = TextEditor(auto_set = False),
+                  label = "Stagger\noverlays",
+                  tooltip = "Offset overlaid histograms vertically by this "
+                            "fraction of the tallest one, eg 0.5"),
              Item('alpha',
                   editor = TextEditor(auto_set = False)),
              Data1DPlotParamsView.content)
