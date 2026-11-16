@@ -65,6 +65,7 @@ from .bleedthrough_linear import BleedthroughLinearOp
 from .compensation import CompensationOp
 from .autospill import AutoSpillOp
 from .cross_entropy import CrossEntropyTestOp
+from .phenograph import PhenographOp
 from .bead_calibration import BeadCalibrationOp
 from .color_translation import ColorTranslationOp
 

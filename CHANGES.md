@@ -1,5 +1,8 @@
 ## Unreleased
 
+- New **Graph Clustering (PhenoGraph)** operation (`PhenographOp`): 
+  k-nearest-neighbor graph with Jaccard weights + Leiden / Louvain community
+  detection, on any number of channels.
 - New **Cross Entropy Test** operation (`CrossEntropyTestOp`): a statistical
   test of whether groups differ in a t-SNE embedding (per-event cross
   entropy compared with Kolmogorov-Smirnov tests; an independent

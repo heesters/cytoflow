@@ -149,6 +149,12 @@ Clustering
 		:link: operations/kmeans
 		:link-type: doc
 	
+	.. grid-item-card:: Graph Clustering (PhenoGraph)
+		:class-card: gallery-card
+		:img-top: operations/images/phenograph.svg
+		:link: operations/phenograph
+		:link-type: doc
+	
 	.. grid-item-card:: FlowPeaks
 		:img-top: /operations/flowpeaks-1_01.png
 		:link: operations/flowpeaks

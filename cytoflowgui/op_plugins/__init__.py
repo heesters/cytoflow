@@ -61,6 +61,7 @@ from .gaussian_2d import GaussianMixture2DPlugin
 from .density import DensityGatePlugin
 from .flowpeaks import FlowPeaksPlugin
 from .kmeans import KMeansPlugin
+from .phenograph import PhenographPlugin
 from .pca import PCAPlugin
 from .flowclean import FlowCleanPlugin
 from .tsne import tSNEPlugin

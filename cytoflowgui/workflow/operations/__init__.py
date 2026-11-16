@@ -62,6 +62,7 @@ from .bleedthrough_linear import BleedthroughLinearWorkflowOp, BleedthroughLinea
 from .compensation import CompensationWorkflowOp, CompensationWorkflowView, Spillover as CompensationSpillover
 from .autospill import AutoSpillWorkflowOp
 from .cross_entropy import CrossEntropyTestWorkflowOp, CrossEntropyTestWorkflowView
+from .phenograph import PhenographWorkflowOp, PhenographWorkflowView
 from .color_translation import ColorTranslationWorkflowOp, ColorTranslationWorkflowView, Control as ColorTranslationControl
 from .tasbe import TasbeWorkflowOp, TasbeWorkflowView
 

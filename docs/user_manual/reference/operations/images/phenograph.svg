@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <!-- two communities in a neighbor graph -->
+  <g fill="none" stroke="#7f7f7f" stroke-width="12">
+    <path d="M 90 150 L 170 80 L 220 180 L 90 150 M 170 80 L 120 250 L 220 180 M 90 150 L 120 250"/>
+    <path d="M 300 330 L 400 280 L 430 400 L 300 330 M 300 330 L 340 440 L 430 400 M 400 280 L 340 440"/>
+    <path d="M 220 180 L 300 330" stroke-dasharray="22 18"/>
+  </g>
+  <g fill="#1f77b4"><circle cx="90" cy="150" r="34"/><circle cx="170" cy="80" r="34"/><circle cx="220" cy="180" r="34"/><circle cx="120" cy="250" r="34"/></g>
+  <g fill="#ff7f0e"><circle cx="300" cy="330" r="34"/><circle cx="400" cy="280" r="34"/><circle cx="430" cy="400" r="34"/><circle cx="340" cy="440" r="34"/></g>
+</svg>
