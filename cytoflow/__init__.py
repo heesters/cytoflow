@@ -74,6 +74,7 @@ from .operations.quad import QuadOp
 # TASBE
 from .operations.autofluorescence import AutofluorescenceOp
 from .operations.bleedthrough_linear import BleedthroughLinearOp
+from .operations.compensation import CompensationOp, read_spillover_csv
 from .operations.bead_calibration import BeadCalibrationOp
 from .operations.color_translation import ColorTranslationOp
 

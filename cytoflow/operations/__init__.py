@@ -56,6 +56,7 @@ from .xform_stat import TransformStatisticOp
 # TASBE
 from .autofluorescence import AutofluorescenceOp
 from .bleedthrough_linear import BleedthroughLinearOp
+from .compensation import CompensationOp
 from .bead_calibration import BeadCalibrationOp
 from .color_translation import ColorTranslationOp
 

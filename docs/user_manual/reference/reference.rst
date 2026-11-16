@@ -61,6 +61,11 @@ Preprocessing
 		:link: operations/bleedthrough_linear
 		:link-type: doc
 	
+	.. grid-item-card:: Compensation (from FCS)
+		:img-top: /operations/compensation-1.png
+		:link: operations/compensation
+		:link-type: doc
+	
 	.. grid-item-card:: FlowClean
 		:img-top: /operations/flowclean-1.png
 		:link: operations/flowclean

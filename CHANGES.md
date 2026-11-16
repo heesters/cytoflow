@@ -3,18 +3,20 @@
 - Undo / redo (Edit menu, Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z) for changes to
   operation and view settings -- including gates drawn on the plot -- and
   for adding or deleting operations.
-
 - Zoom and pan on plots: pinch / two-finger scroll on a trackpad, mouse
   wheel or Ctrl/Cmd+scroll to zoom. The zoom is kept while gates are
   adjusted (the plot is redrawn after every change); press 0 to reset.
-
+- New **Compensation** operation (`CompensationOp`): apply the spillover
+  matrix the cytometer stored in the FCS file (`$SPILLOVER` / `SPILL` /
+  `$SPILL`), like FlowJo and FCS Express do. Works with renamed channels,
+  can load a matrix from a CSV file (eg exported from FlowJo), and the GUI
+  shows the matrix as an editable table plus a heat map of the spillover.
 - Channel axis labels: give each channel a free-text label at import (eg
   "CD4 (FITC)"), or fill them from the marker names recorded in the FCS
   file. Labels are used as axis titles on every plot. (`ImportOp.channel_labels`)
 - SVG / PDF export keeps text as editable text, and embeds large scatter /
   density layers as an image, so exported figures open quickly in
   Illustrator, Affinity Designer and Inkscape.
-
 - Easier gate drawing, especially on a laptop trackpad (eg, macOS):
   - Polygon gates close with a double-click; Backspace/Delete removes the
     last vertex; Escape starts over.
