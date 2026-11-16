@@ -73,6 +73,7 @@ from .register import RegistrationPlugin
 from .bleedthrough_linear import BleedthroughLinearPlugin
 from .compensation import CompensationPlugin
 from .autospill import AutoSpillPlugin
+from .cross_entropy import CrossEntropyTestPlugin
 from .bead_calibration import BeadCalibrationPlugin
 from .autofluorescence import AutofluorescencePlugin
 from .color_translation import ColorTranslationPlugin

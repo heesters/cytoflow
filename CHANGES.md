@@ -1,5 +1,9 @@
 ## Unreleased
 
+- New **Cross Entropy Test** operation (`CrossEntropyTestOp`): a statistical
+  test of whether groups differ in a t-SNE embedding (per-event cross
+  entropy compared with Kolmogorov-Smirnov tests; an independent
+  implementation of the method of Roca et al., Cell Rep Methods 2023).
 - New **AutoSpill Compensation** operation (`AutoSpillOp`): compute the
   spillover matrix from single-color controls without gating positive and
   negative populations (robust regression + iterative refinement; a Python

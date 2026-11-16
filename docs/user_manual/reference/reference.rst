@@ -179,6 +179,12 @@ Dimensionality Reduction
 		:img-top: /operations/tsne-1.png
 		:link: operations/tsne
 		:link-type: doc
+	
+	.. grid-item-card:: Cross Entropy Test
+		:class-card: gallery-card
+		:img-top: operations/images/cross_entropy.svg
+		:link: operations/cross_entropy
+		:link-type: doc
 
 	.. grid-item-card:: Uniform Manifold Approximation and Projection (UMAP)
 		:img-top: /operations/umap-1.png

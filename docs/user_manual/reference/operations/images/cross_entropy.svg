@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <path d="M 70 430 L 460 430 M 70 430 L 70 50" fill="none" stroke="#000000" stroke-width="22" stroke-linecap="round"/>
+  <!-- two cumulative distributions and the largest gap between them -->
+  <path d="M 80 420 C 150 420, 160 120, 250 100 S 400 80, 450 78" fill="none" stroke="#1f77b4" stroke-width="22" stroke-linecap="round"/>
+  <path d="M 80 422 C 220 422, 250 330, 310 200 S 400 90, 450 82" fill="none" stroke="#ff7f0e" stroke-width="22" stroke-linecap="round"/>
+  <path d="M 215 150 L 215 370" fill="none" stroke="#000000" stroke-width="14" stroke-dasharray="26 16"/>
+</svg>

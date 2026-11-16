@@ -64,6 +64,7 @@ from .autofluorescence import AutofluorescenceOp
 from .bleedthrough_linear import BleedthroughLinearOp
 from .compensation import CompensationOp
 from .autospill import AutoSpillOp
+from .cross_entropy import CrossEntropyTestOp
 from .bead_calibration import BeadCalibrationOp
 from .color_translation import ColorTranslationOp
 
