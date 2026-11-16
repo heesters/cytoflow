@@ -115,9 +115,22 @@ coll = COLLECT(exe,
                icon='icon.ico')
 
 if sys.platform == 'darwin':
+   # the version shown in Finder's "Get Info"
+   try:
+       from importlib.metadata import version as _get_version
+       _version = _get_version('cytoflow')
+   except Exception:
+       _version = "0.0.0"
+
    app = BUNDLE(coll,
                 name = "Cytoflow.app",
                 icon = "icon.icns",
-                bundle_identifier=None)
+                # a stable identifier, so macOS keeps the app's preferences
+                # and permissions between versions
+                bundle_identifier = "io.github.cytoflow.Cytoflow",
+                version = _version,
+                info_plist = {'NSHighResolutionCapable' : True,
+                              'CFBundleDisplayName' : 'Cytoflow',
+                              'NSHumanReadableCopyright' : 'GPL-2.0-or-later'})
 
 

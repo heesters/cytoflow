@@ -1,5 +1,11 @@
 ## Unreleased
 
+- Fix a crash-prone race: deleting the selected operation while its plot was
+  still being drawn cleared the figure underneath the plot ("Axes has not
+  been added yet").
+- New GitHub workflow `build-apps.yml` builds the macOS (Apple Silicon and
+  Intel) and Windows applications without needing tags or secrets, so it
+  also works in forks.
 - New **Graph Clustering (PhenoGraph)** operation (`PhenographOp`): 
   k-nearest-neighbor graph with Jaccard weights + Leiden / Louvain community
   detection, on any number of channels.

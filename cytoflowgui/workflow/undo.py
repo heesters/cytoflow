@@ -236,7 +236,7 @@ class UndoManager(HasStrictTraits):
             step.time = now
             self.redo_stack = []
 
-    def _on_trait_change(self, obj, name, old, new, has_old):
+    def _record_trait_change(self, obj, name, old, new, has_old):
         shadow = self._shadow.setdefault(id(obj), {})
         if not has_old:
             if name not in shadow:
@@ -283,7 +283,7 @@ class UndoManager(HasStrictTraits):
         trait = obj.trait(name)
         if trait is None or trait.transient or trait.status:
             return
-        self._on_trait_change(obj, name, event.old, getattr(obj, name), has_old)
+        self._record_trait_change(obj, name, event.old, getattr(obj, name), has_old)
 
     @observe('model:workflow:items:views:items:+type')
     def _on_view_changed(self, event):
@@ -299,7 +299,7 @@ class UndoManager(HasStrictTraits):
         if (trait is None or trait.transient or trait.status
             or trait.type in ('delegate', 'event', 'property')):
             return
-        self._on_trait_change(obj, name, event.old, getattr(obj, name), has_old)
+        self._record_trait_change(obj, name, event.old, getattr(obj, name), has_old)
 
     ### undo / redo
 

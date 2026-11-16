@@ -4,4 +4,9 @@ from PyInstaller.utils.hooks import (copy_metadata, collect_submodules,
 datas = copy_metadata('scipy') + collect_data_files('scipy')
 
 hiddenimports = collect_submodules('scipy._cyutility') + \
-                collect_submodules('scipy._lib') 
+                collect_submodules('scipy._lib')
+                
+# newer versions of scipy keep the array API compatibility layer here, and
+# import it dynamically.  (collect_submodules returns an empty list if the
+# package doesn't exist.)
+hiddenimports += collect_submodules('scipy._external')

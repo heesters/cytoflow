@@ -988,8 +988,18 @@ class RemoteWorkflow(HasStrictTraits):
         logger.debug("RemoteWorkflow._selected_changed :: {}".format(event))
          
         if event.new is None:
-            plt.clf()
-            plt.show()
+            # this runs on the thread that receives messages, but plots are
+            # drawn on the main thread.  wait for a plot that's in progress
+            # to finish: clearing the figure underneath it makes it fail
+            # with "Axes has not been added yet" (eg, when the selected
+            # item is deleted while its plot is still being drawn.)
+            if self.plot_lock is not None:
+                with self.plot_lock:
+                    plt.clf()
+                    plt.show()
+            else:
+                plt.clf()
+                plt.show()
         else:
             idx = self.workflow.index(event.new)
             if event.new.current_view:
