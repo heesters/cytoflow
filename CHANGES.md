@@ -1,5 +1,8 @@
 ## Unreleased
 
+- "Magnetic" gates: polygon, freehand and ellipse gates can be adjusted per
+  sample (`adjust_by`, "Adjust Per" in the GUI) -- the gate shifts to follow
+  the population in each tube / well, up to `max_adjust` of its size.
 - New **Axis Transforms** operation (`ScaleSettingsOp`): set the logicle
   W / M / A and arcsinh cofactor per channel (like FlowJo's "customize
   axis"); all later plots and gates use them.

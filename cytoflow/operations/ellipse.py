@@ -33,7 +33,7 @@ ellipse and/or interactively draw it on a density plot.
 """
 
 from traits.api import (HasStrictTraits, Str, Float, Tuple, provides,
-                        Instance, Bool, observe, Any, Dict, Constant)
+                        Instance, Bool, observe, Any, Dict, Constant, List)
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -46,6 +46,7 @@ from .i_operation import IOperation
 from .base_op_views import Op2DView
 
 from ._selectors import EasyEllipseSelector
+from ._magnetic import magnetic_membership
 
 @provides(IOperation)
 class EllipseOp(HasStrictTraits):
@@ -84,6 +85,18 @@ class EllipseOp(HasStrictTraits):
     angle : Float (default = 0.0)
         The counter-clockwise rotation of the ellipse, in degrees, in
         scaled space.
+
+    adjust_by : List(Str)
+        "Magnetic" gate: if set, the gate is shifted separately for each 
+        group of events defined by these conditions (eg, each tube or well),
+        to follow that group's population -- like FlowJo's magnetic gates.
+        The gate keeps the same position *relative to the population* as in 
+        the pooled data.  The shifts (in scaled units) are stored in 
+        the statistic named `name`.
+        
+    max_adjust : Float (default = 0.25)
+        With `adjust_by`, the largest shift allowed, as a fraction of the
+        gate's width (or height).
 
     Notes
     -----
@@ -179,6 +192,9 @@ class EllipseOp(HasStrictTraits):
     width = Float(0.0)
     height = Float(0.0)
     angle = Float(0.0)
+    
+    adjust_by = List(Str)
+    max_adjust = Float(0.25)
 
     xscale = util.ScaleEnum()
     yscale = util.ScaleEnum()
@@ -273,14 +289,31 @@ class EllipseOp(HasStrictTraits):
         x = np.asarray(xscale(experiment.data[self.xchannel].values), dtype = float)
         y = np.asarray(yscale(experiment.data[self.ychannel].values), dtype = float)
 
-        in_ellipse = ellipse_contains(np.column_stack((x, y)),
-                                      (cx, cy),
-                                      self.width,
-                                      self.height,
-                                      self.angle)
+        xy = np.column_stack((x, y))
+        if self.adjust_by:
+            # the ellipse's bounding box, for the size limit
+            t = np.deg2rad(self.angle)
+            bw = 2 * np.hypot(self.width / 2 * np.cos(t), self.height / 2 * np.sin(t))
+            bh = 2 * np.hypot(self.width / 2 * np.sin(t), self.height / 2 * np.cos(t))
+            in_ellipse, shifts = magnetic_membership(
+                experiment, xy,
+                lambda pts, offset: ellipse_contains(pts, (cx + offset[0], cy + offset[1]),
+                                                     self.width, self.height, self.angle),
+                (bw, bh),
+                self.adjust_by,
+                self.max_adjust)
+        else:
+            in_ellipse = ellipse_contains(xy,
+                                          (cx, cy),
+                                          self.width,
+                                          self.height,
+                                          self.angle)
+            shifts = None
 
         new_experiment = experiment.clone(deep = False)
         new_experiment.add_condition(self.name, "bool", in_ellipse)
+        if shifts is not None:
+            new_experiment.statistics[self.name] = shifts
         new_experiment.history.append(self.clone_traits(transient = lambda _: True))
 
         return new_experiment

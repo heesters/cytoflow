@@ -22,7 +22,7 @@ cytoflowgui.workflow.operations.ellipse
 
 """
 
-from traits.api import (provides, Instance, Str, observe, Float, Bool, Enum,
+from traits.api import (provides, Instance, List, Str, observe, Float, Bool, Enum,
                         Constant, Tuple, Property, DelegatesTo)
 
 from cytoflow.operations.ellipse import (EllipseOp, ScatterplotEllipseSelectionView,
@@ -178,6 +178,8 @@ class EllipseWorkflowOp(WorkflowOperation, EllipseOp):
     name = Str(apply = True)
     xchannel = Str(apply = True)
     ychannel = Str(apply = True)
+    adjust_by = List(Str, apply = True)
+    max_adjust = util.PositiveCFloat(0.25, allow_zero = True, apply = True)
 
     # the ellipse is (center x, center y, width, height, angle).  it's a
     # single trait so that updating it from the interactive view is atomic.
@@ -234,6 +236,20 @@ class EllipseWorkflowOp(WorkflowOperation, EllipseOp):
 
 
 ### Serialization
+@camel_registry.dumper(EllipseWorkflowOp, 'ellipse', version = 2)
+def _dump_v2(op):
+    return dict(name = op.name,
+                xchannel = op.xchannel,
+                ychannel = op.ychannel,
+                center = op.center,
+                width = op.width,
+                height = op.height,
+                angle = op.angle,
+                xscale = op.xscale,
+                yscale = op.yscale,
+                adjust_by = op.adjust_by,
+                max_adjust = op.max_adjust)
+
 @camel_registry.dumper(EllipseWorkflowOp, 'ellipse', version = 1)
 def _dump(op):
     return dict(name = op.name,
@@ -247,6 +263,7 @@ def _dump(op):
                 yscale = op.yscale)
 
 @camel_registry.loader('ellipse', version = 1)
+@camel_registry.loader('ellipse', version = 2)
 def _load(data, version):
     data['center'] = tuple(data['center'])
     return EllipseWorkflowOp(**data)

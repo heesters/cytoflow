@@ -49,6 +49,21 @@ gate.
 
     The name of the channel on the gate's Y axis.
     
+.. object:: Adjust Per
+
+    Makes this a "magnetic" gate.  Tick one or more conditions (eg, the one 
+    that identifies each tube or well), and the gate is shifted separately 
+    for each of their values, so it follows the population when it sits in
+    a slightly different place in each sample.  The plot still shows the 
+    gate as you drew it; the shift applied to each sample is saved as a
+    statistic with the gate's name, which you can look at with a table view.
+    
+.. object:: Max Adjustment
+
+    The furthest the gate may move, as a fraction of its own width and 
+    height (default 0.25).  Keep it small enough that the gate can't jump to
+    a neighboring population.
+    
 .. object:: Width, Height
 
     The size of the ellipse, in scaled units (for example, decades on a 
@@ -102,7 +117,7 @@ gate.
 '''
 
 from traits.api import provides, List
-from traitsui.api import View, Item, EnumEditor, VGroup, TextEditor, Controller
+from traitsui.api import View, Item, EnumEditor, VGroup, TextEditor, Controller, CheckListEditor
 from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
 
@@ -153,6 +168,18 @@ class EllipseHandler(OpHandler):
              Item('ychannel',
                   editor=EnumEditor(name='context_handler.previous_channels'),
                   label = "Y Channel"),
+             Item('adjust_by',
+                  editor = CheckListEditor(cols = 2,
+                                           name = 'context_handler.previous_conditions_names'),
+                  label = 'Adjust\nPer',
+                  style = 'custom',
+                  tooltip = "Magnetic gate: shift the gate separately for "
+                            "each value of these conditions, to follow the "
+                            "population"),
+             Item('max_adjust',
+                  editor = TextEditor(auto_set = False),
+                  label = "Max\nAdjustment",
+                  visible_when = 'adjust_by'),
              Item('width',
                   editor = TextEditor(auto_set = False,
                                       evaluate = float),

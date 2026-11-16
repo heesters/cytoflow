@@ -172,6 +172,8 @@ class PolygonWorkflowOp(WorkflowOperation, PolygonOp):
     name = Str(apply = True)
     xchannel = Str(apply = True)
     ychannel = Str(apply = True)
+    adjust_by = List(Str, apply = True)
+    max_adjust = util.PositiveCFloat(0.25, allow_zero = True, apply = True)
     
     vertices = List(Tuple(Float, Float), apply = True)
     
@@ -201,6 +203,17 @@ class PolygonWorkflowOp(WorkflowOperation, PolygonOp):
         
         
 ### Serialization
+@camel_registry.dumper(PolygonWorkflowOp, 'polygon', version = 2)
+def _dump_v2(op):
+    return dict(name = op.name,
+                xchannel = op.xchannel,
+                ychannel = op.ychannel,
+                vertices = op.vertices,
+                xscale = op.xscale,
+                yscale = op.yscale,
+                adjust_by = op.adjust_by,
+                max_adjust = op.max_adjust)
+    
 @camel_registry.dumper(PolygonWorkflowOp, 'polygon', version = 1)
 def _dump(op):
     return dict(name = op.name,
@@ -211,6 +224,7 @@ def _dump(op):
                 yscale = op.yscale)
     
 @camel_registry.loader('polygon', version = 1)
+@camel_registry.loader('polygon', version = 2)
 def _load(data, version):
     data['vertices'] = [(v[0], v[1]) for v in data['vertices']]
     return PolygonWorkflowOp(**data)

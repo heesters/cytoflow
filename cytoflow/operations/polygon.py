@@ -48,6 +48,7 @@ from .i_operation import IOperation
 from .base_op_views import Op2DView
 
 from ._selectors import EasyPolygonSelector
+from ._magnetic import magnetic_membership
 
 @provides(IOperation)
 class PolygonOp(HasStrictTraits):
@@ -69,6 +70,18 @@ class PolygonOp(HasStrictTraits):
     vertices : List((Float, Float))
         The polygon verticies.  An ordered list of 2-tuples, representing
         the x and y coordinates of the vertices.
+        
+    adjust_by : List(Str)
+        "Magnetic" gate: if set, the gate is shifted separately for each 
+        group of events defined by these conditions (eg, each tube or well),
+        to follow that group's population -- like FlowJo's magnetic gates.
+        The gate keeps the same position *relative to the population* as in 
+        the pooled data.  The shifts (in scaled units) are stored in 
+        the statistic named `name`.
+        
+    max_adjust : Float (default = 0.25)
+        With `adjust_by`, the largest shift allowed, as a fraction of the
+        gate's width (or height).
         
     Notes
     -----
@@ -172,6 +185,9 @@ class PolygonOp(HasStrictTraits):
     ychannel = Str
     vertices = List(Tuple(Float, Float))
     
+    adjust_by = List(Str)
+    max_adjust = Float(0.25)
+    
     xscale = util.ScaleEnum()
     yscale = util.ScaleEnum()
     
@@ -269,10 +285,24 @@ class PolygonOp(HasStrictTraits):
         # see https://stackoverflow.com/questions/36399381/whats-the-fastest-way-of-checking-if-a-point-is-inside-a-polygon-in-python
         # for a deep dive
         xy_data = data[[self.xchannel, self.ychannel]].values
-        in_polygon = util.polygon_contains(xy_data, np.array(vertices))
+        
+        if self.adjust_by:
+            verts = np.array(vertices, dtype = float)
+            in_polygon, shifts = magnetic_membership(
+                experiment, 
+                np.asarray(xy_data, dtype = float),
+                lambda pts, offset: util.polygon_contains(pts, verts + offset),
+                verts.max(axis = 0) - verts.min(axis = 0),
+                self.adjust_by,
+                self.max_adjust)
+        else:
+            in_polygon = util.polygon_contains(xy_data, np.array(vertices))
+            shifts = None
         
         new_experiment = experiment.clone(deep = False)        
         new_experiment.add_condition(self.name, "bool", in_polygon)
+        if shifts is not None:
+            new_experiment.statistics[self.name] = shifts
         new_experiment.history.append(self.clone_traits(transient = lambda _: True))
             
         return new_experiment
