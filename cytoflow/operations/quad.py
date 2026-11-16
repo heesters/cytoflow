@@ -37,7 +37,6 @@ from traits.api import (HasStrictTraits, Float, Str, Bool, Instance,
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.widgets import Cursor
 
 import numpy as np
 import pandas as pd
@@ -47,6 +46,7 @@ from cytoflow.views import ISelectionView, ScatterplotView, DensityView
 
 from .i_operation import IOperation
 from .base_op_views import Op2DView
+from ._selectors import GateLineDragger
 
 
 @provides(IOperation)
@@ -292,7 +292,7 @@ class _QuadSelection(Op2DView):
     _ax = Any(transient = True)
     _hline = Instance(Line2D, transient = True)
     _vline = Instance(Line2D, transient = True)
-    _cursor = Instance(Cursor, transient = True)
+    _cursor = Instance(GateLineDragger, transient = True)
     _line_props = Dict()
         
     def plot(self, experiment, **kwargs):      
@@ -320,7 +320,7 @@ class _QuadSelection(Op2DView):
         if self._vline and self._vline in self._ax.lines:
             self._vline.remove()
                         
-        if self.op.xthreshold and self.op.ythreshold:
+        if self.op.xthreshold is not None and self.op.ythreshold is not None:
             self._hline = plt.axhline(self.op.ythreshold, **self._line_props) 
             self._vline = plt.axvline(self.op.xthreshold, **self._line_props)
             
@@ -328,21 +328,27 @@ class _QuadSelection(Op2DView):
 
     @observe('interactive', post_init = True)
     def _interactive(self, _):
-        if self._ax and self.interactive and self._cursor is None:
-            self._cursor = Cursor(self._ax,
-                                  horizOn = True,
-                                  vertOn = True,
-                                  color = 'blue',
-                                  useblit = True) 
-            self._cursor.connect_event('button_press_event', self._onclick)
-        elif not self.interactive and self._cursor is not None:
-            self._cursor.disconnect_events()
+        if self._cursor is not None:
+            self._cursor.disconnect()
             self._cursor = None
             
-    def _onclick(self, event):
+        if self._ax and self.interactive:
+            # click to place the gate; afterwards, drag either line (or the
+            # intersection) to move it.  a stray click elsewhere is ignored.
+            self._cursor = GateLineDragger(self._ax,
+                                           get_x = lambda: self.op.xthreshold,
+                                           get_y = lambda: self.op.ythreshold,
+                                           on_set = self._onset,
+                                           use_x = True,
+                                           use_y = True,
+                                           color = 'blue')
+            
+    def _onset(self, x, y):
         """Update the threshold location"""
-        self.op.xthreshold = event.xdata
-        self.op.ythreshold = event.ydata  
+        if x is not None:
+            self.op.xthreshold = x
+        if y is not None:
+            self.op.ythreshold = y
     
 
 @provides(ISelectionView)

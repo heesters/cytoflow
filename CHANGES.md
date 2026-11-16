@@ -6,6 +6,14 @@
   - Existing polygon, range and 2D range gates can be adjusted by dragging
     their vertices / edges / corners, instead of re-drawing them.
   - A stray click no longer erases a range or 2D range gate.
+- Threshold and quadrant gates: drag the line(s) to move them; a stray
+  click no longer moves the gate (double-click jumps it to a new spot); a
+  gate at 0 is now drawn; clicking outside the plot no longer erases a 
+  quadrant gate.
+- Smoother mouse tracking while drawing gates (60 updates/second, was 10).
+- Keyboard shortcuts: Save As is now Ctrl/Cmd+Shift+S (was Ctrl/Cmd+E) and
+  Save Plot is Ctrl/Cmd+Shift+E (was Ctrl/Cmd+X, which is normally Cut).
+- New application icon.
 - The GUI's plot now receives keyboard events (they were dropped before).
 - Fix gates being drawn in the wrong place when the plot window is on a
   non-Retina screen (eg, an external monitor on a Mac).

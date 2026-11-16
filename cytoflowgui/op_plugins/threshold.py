@@ -22,7 +22,11 @@
 Threshold Gate
 --------------
 
-Draw a threshold gate.  To set a new threshold, click on the plot.
+Draw a threshold gate.  To set the threshold, click on the plot.
+
+Once it's set, drag the line to move it.  A single click elsewhere on the plot
+is ignored (so the gate isn't moved by accident); double-click to move the
+threshold straight to a new spot.
 
 .. object:: Name
 

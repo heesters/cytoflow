@@ -37,13 +37,13 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.widgets import Cursor
 
 import cytoflow.utility as util
 from cytoflow.views import ISelectionView, HistogramView
 
 from .i_operation import IOperation
 from .base_op_views import Op1DView
+from ._selectors import GateLineDragger
 
 @provides(IOperation)
 class ThresholdOp(HasStrictTraits):
@@ -226,7 +226,7 @@ class ThresholdSelection(Op1DView, HistogramView):
     # internal state
     _ax = Any(transient = True)
     _line = Instance(Line2D, transient = True)
-    _cursor = Instance(Cursor, transient = True)
+    _cursor = Instance(GateLineDragger, transient = True)
     _line_props = Dict()
 
     
@@ -258,7 +258,7 @@ class ThresholdSelection(Op1DView, HistogramView):
     
     @observe('op.threshold', post_init = True)
     def _draw_threshold(self, _):
-        if not self._ax or not self.op.threshold:
+        if not self._ax:
             return
         
         if self._line:
@@ -272,30 +272,32 @@ class ThresholdSelection(Op1DView, HistogramView):
  
             self._line = None
         
-        if self.op.threshold:    
+        if self.op.threshold is not None:    
             self._line = plt.axvline(self.op.threshold, **self._line_props)
             
         plt.draw()
         
     @observe('interactive', post_init = True)
     def _interactive(self, _):
-        if self._ax and self.interactive:
-            self._cursor = Cursor(self._ax, 
-                                  horizOn=False,
-                                  vertOn=True,
-                                  color='blue',
-                                  useblit = True)
-            self._cursor.connect_event('button_press_event', self._onclick)
-            
-        elif self._cursor:
-            self._cursor.disconnect_events()
+        if self._cursor:
+            self._cursor.disconnect()
             self._cursor = None
             
-    def _onclick(self, event):
+        if self._ax and self.interactive:
+            # click to place the threshold; afterwards, drag the line to move
+            # it (a stray click elsewhere is ignored.)
+            self._cursor = GateLineDragger(self._ax,
+                                           get_x = lambda: self.op.threshold,
+                                           get_y = lambda: None,
+                                           on_set = self._onset,
+                                           use_x = True,
+                                           use_y = False,
+                                           color = 'blue')
+            
+    def _onset(self, x, _):
         """Update the threshold location"""
-        # sometimes the axes aren't set up and we don't get xdata (??)
-        if event.xdata:
-            self.op.threshold = event.xdata
+        if x is not None:
+            self.op.threshold = x
             
 util.expand_class_attributes(ThresholdSelection)
 util.expand_method_parameters(ThresholdSelection, ThresholdSelection.plot)  

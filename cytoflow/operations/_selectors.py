@@ -32,7 +32,8 @@ laptop trackpad (eg, a MacBook), where precise clicks are hard:
 """
 
 import numpy as np
-from matplotlib.widgets import PolygonSelector, SpanSelector, RectangleSelector
+from matplotlib.widgets import (PolygonSelector, SpanSelector, 
+                                RectangleSelector, Cursor)
 
 
 class EasyPolygonSelector(PolygonSelector):
@@ -124,3 +125,113 @@ class EasySpanSelector(_KeepOnClickMixin, SpanSelector):
 
 class EasyRectangleSelector(_KeepOnClickMixin, RectangleSelector):
     """A `RectangleSelector` that keeps the existing box on a stray click."""
+
+
+class GateLineDragger:
+    """
+    Interactive placement of the line(s) of a threshold or quadrant gate.
+
+    - If there's no gate yet, a crosshair follows the mouse and a click
+      places the gate.
+    - Once there is a gate, **drag its line** (or, for a quadrant gate, the
+      intersection) to move it.  A stray single click elsewhere is ignored,
+      so the gate isn't moved by accident; double-click to jump the gate
+      to a new location.
+
+    Parameters
+    ----------
+    ax : `matplotlib.axes.Axes`
+    get_x, get_y : callable
+        Return the gate's current x / y position (or `None`).
+    on_set : callable
+        Called as ``on_set(x, y)`` when the user places the gate.  The
+        coordinate that wasn't moved is passed as `None`.
+    use_x, use_y : bool
+        Whether the gate has a vertical (x) and/or horizontal (y) line.
+    """
+
+    def __init__(self, ax, get_x, get_y, on_set, use_x = True, use_y = False,
+                 grab_range = 15, **line_props):
+        self.ax = ax
+        self.get_x = get_x
+        self.get_y = get_y
+        self.on_set = on_set
+        self.use_x = use_x
+        self.use_y = use_y
+        self.grab_range = grab_range
+        self._drag = None
+
+        self.cursor = Cursor(ax,
+                             horizOn = use_y,
+                             vertOn = use_x,
+                             useblit = True,
+                             **line_props)
+        self.cursor.connect_event('button_press_event', self._on_press)
+        self.cursor.connect_event('button_release_event', self._on_release)
+        self._update_cursor()
+
+    def _has_gate(self):
+        return ((not self.use_x or self.get_x() is not None) and
+                (not self.use_y or self.get_y() is not None))
+
+    def _update_cursor(self):
+        if self._drag:
+            self.cursor.vertOn, self.cursor.horizOn = self._drag
+            self.cursor.visible = True
+        else:
+            self.cursor.vertOn, self.cursor.horizOn = self.use_x, self.use_y
+            # only show the crosshair if there's no gate yet
+            self.cursor.visible = not self._has_gate()
+
+    def _usable(self, event):
+        return (self.cursor.active
+                and event.inaxes is self.ax
+                and event.button == 1
+                and event.xdata is not None
+                and event.ydata is not None
+                and self.ax.figure.canvas.widgetlock.available(self.cursor))
+
+    def _on_press(self, event):
+        if not self._usable(event):
+            return
+
+        if not self._has_gate() or getattr(event, 'dblclick', False):
+            self._drag = (self.use_x, self.use_y)
+        else:
+            # is the press near one of the existing lines?
+            near_x = near_y = False
+            gx = self.get_x() if self.use_x else None
+            gy = self.get_y() if self.use_y else None
+            px, py = self.ax.transData.transform(
+                (gx if gx is not None else event.xdata,
+                 gy if gy is not None else event.ydata))
+            if self.use_x and np.isfinite(px):
+                near_x = abs(event.x - px) <= self.grab_range
+            if self.use_y and np.isfinite(py):
+                near_y = abs(event.y - py) <= self.grab_range
+            if not (near_x or near_y):
+                return  # a stray click -- leave the gate alone
+            self._drag = (near_x, near_y)
+
+        self._update_cursor()
+        self.cursor.onmove(event)
+
+    def _on_release(self, event):
+        if not self._drag:
+            return
+
+        move_x, move_y = self._drag
+        self._drag = None
+
+        if (event.inaxes is self.ax
+                and event.xdata is not None
+                and event.ydata is not None):
+            self.on_set(float(event.xdata) if move_x else None,
+                        float(event.ydata) if move_y else None)
+
+        self._update_cursor()
+        self.cursor.onmove(event)
+
+    def disconnect(self):
+        self.cursor.disconnect_events()
+        self.cursor.visible = False

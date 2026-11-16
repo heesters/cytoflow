@@ -107,6 +107,10 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         self._drawRect = None
         self.child_conn = child_conn
         
+        # the Qt thread (clicks, keys) and the sender thread (mouse moves,
+        # resizes) both write to the pipe; Connection.send isn't thread-safe
+        self._send_lock = threading.Lock()
+        
         # accept keyboard focus (by clicking or tabbing) so that key presses
         # (Escape, Backspace, modifiers) reach the interactive gate widgets
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
@@ -155,6 +159,11 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         t.daemon = True
         t.start()
         
+    def _send(self, msg):
+        with self._send_lock:
+            self.child_conn.send(msg)
+            
+            
     def listen_for_remote(self):
         """
         The main method for the thread that listens for messages from
@@ -201,7 +210,7 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
             
             if self.move_x is not None:
                 msg = (Msg.MOUSE_MOVE_EVENT, (self.move_x, self.move_y))
-                self.child_conn.send(msg)
+                self._send(msg)
                 self.move_x = self.move_y = None
                 
             if self.resize_width is not None:
@@ -210,12 +219,15 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
                 msg = (Msg.RESIZE_EVENT, (self.resize_width, 
                                           self.resize_height, 
                                           self.figure.dpi))
-                self.child_conn.send(msg)
+                self._send(msg)
                 self.resize_width = self.resize_height = None
 
-            # for performance reasons, make sure there are no more than
-            # 10 updates per second
-            time.sleep(0.1)
+            # for performance reasons, limit how often we send updates.  mouse
+            # moves are coalesced (only the latest position is sent), so this
+            # is the maximum rate at which the rubber-band lines of the gate
+            # selectors can follow the mouse.  10 Hz felt laggy; ~60 Hz is
+            # smooth and the remote side drops intermediate frames anyway.
+            time.sleep(1.0 / 60)
             
 
     def leaveEvent(self, event):
@@ -240,7 +252,7 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         button = self.buttond.get(event.button())
         if button is not None:
             msg = (Msg.MOUSE_PRESS_EVENT, (x, y, button))
-            self.child_conn.send(msg)
+            self._send(msg)
             
             
     def mouseDoubleClickEvent(self, event):
@@ -256,7 +268,7 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         button = self.buttond.get(event.button())
         if button is not None:
             msg = (Msg.MOUSE_DOUBLE_CLICK_EVENT, (x, y, button))
-            self.child_conn.send(msg)
+            self._send(msg)
 
 
     def mouseMoveEvent(self, event):
@@ -284,7 +296,7 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         button = self.buttond.get(event.button())
         if button is not None:
             msg = (Msg.MOUSE_RELEASE_EVENT, (x, y, button))
-            self.child_conn.send(msg)
+            self._send(msg)
 
 
     def _key_payload(self, event):
@@ -304,7 +316,7 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         """
         payload = self._key_payload(event)
         if payload is not None:
-            self.child_conn.send((Msg.KEY_PRESS_EVENT, payload))
+            self._send((Msg.KEY_PRESS_EVENT, payload))
 
 
     def keyReleaseEvent(self, event):
@@ -313,7 +325,7 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         """
         payload = self._key_payload(event)
         if payload is not None:
-            self.child_conn.send((Msg.KEY_RELEASE_EVENT, payload))
+            self._send((Msg.KEY_RELEASE_EVENT, payload))
             
             
     def resizeEvent(self, event):
@@ -406,6 +418,6 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
         Pass a "print" request to the remote canvas 
         (actually this is for rastering a figure and saving it to disk)
         """
-        self.child_conn.send((Msg.PRINT, (args, kwargs)))
+        self._send((Msg.PRINT, (args, kwargs)))
 
 
