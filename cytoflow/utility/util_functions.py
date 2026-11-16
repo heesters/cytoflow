@@ -339,3 +339,20 @@ def cov2corr(covariance):
     correlation = covariance / M
 
     return sigma, correlation
+
+
+def channel_label(experiment, name):
+    """
+    Return the display label for a channel (set with 
+    `ImportOp.channel_labels`), or ``name`` unchanged if ``name`` isn't a
+    channel or the channel has no label.  Use this when titling an axis with
+    a channel name.
+    """
+    
+    if not isinstance(name, str) or experiment is None:
+        return name
+    
+    try:
+        return experiment.metadata[name].get('label') or name
+    except (KeyError, AttributeError, TypeError):
+        return name

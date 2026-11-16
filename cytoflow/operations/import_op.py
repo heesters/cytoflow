@@ -133,6 +133,16 @@ class ImportOp(HasStrictTraits):
         all characters must be letters, numbers or ``_``.  If `channels` is
         empty, load all channels in the FCS files.
         
+    channel_labels : Dict(Str, Str)
+        Free-text display labels for channels, used as the default axis
+        titles in plots (eg, ``{"FITC_A" : "CD4 (FITC)"}``).  Unlike channel
+        names, labels can contain any text, so this is the place to fix
+        uninformative or wrong names recorded by the cytometer.  Keys can be
+        either the channel name in the `Experiment` or the name in the FCS
+        file.  Each label is stored in the experiment's channel metadata
+        under the ``label`` key.  (The stain / marker name recorded in the
+        FCS file, if any, is stored under the ``marker`` key.)
+        
     events : Int
         If not None, import only a random subset of events of size `events`. 
         Presumably the analysis will go faster but less precisely; good for
@@ -189,6 +199,9 @@ class ImportOp(HasStrictTraits):
     
     # which channels do we import?
     channels = Dict(Str, Str)
+    
+    # free-text display labels for channels
+    channel_labels = Dict(Str, Str)
     
     # which FCS metadata has the channel names in it?
     name_metadata = Enum(None, "$PnN", "$PnS")
@@ -328,6 +341,13 @@ class ImportOp(HasStrictTraits):
             
             experiment.metadata[channel]["fcs_name"] = channel
             
+            # keep track of the marker / stain name ($PnS), if there is one
+            other_name = "$PnN" if experiment.metadata["name_metadata"] == "$PnS" else "$PnS"
+            if other_name in meta_channels.columns:
+                marker = str(meta_channels.loc[channel][other_name]).strip()
+                if marker and marker != channel and marker.lower() not in ('nan', 'none'):
+                    experiment.metadata[channel]["marker"] = marker
+            
             # keep track of the channel's PMT voltage
             if("$PnV" in meta_channels.loc[channel]):
                 v = meta_channels.loc[channel]['$PnV']
@@ -455,6 +475,14 @@ class ImportOp(HasStrictTraits):
                 experiment.metadata[new_name] = experiment.metadata[channel]
                 experiment.metadata[new_name]["fcs_name"] = channel
                 del experiment.metadata[channel]
+                
+        # add the display labels
+        for channel in [c for c in experiment.data.columns 
+                        if experiment.metadata.get(c, {}).get('type') == 'channel']:
+            fcs_name = experiment.metadata[channel].get("fcs_name", channel)
+            label = self.channel_labels.get(channel) or self.channel_labels.get(fcs_name)
+            if label and label.strip():
+                experiment.metadata[channel]["label"] = label.strip()
                 
         # create a statistic named "Conditions" that contains an index level for
         # each condition, a row for each tube and a column for each numeric condition
@@ -671,3 +699,27 @@ def parse_tube(filename, experiment = None, data_set = 0, metadata_only = False)
     return tube_meta, tube_data
 
 
+
+
+def fcs_marker_names(filename, data_set = 0):
+    """
+    Return a list of ``($PnN, $PnS)`` pairs from an FCS file -- that is, the
+    detector name and the stain / marker name of each channel.  ``$PnS``
+    is ``None`` if the file doesn't record it.
+    """
+    
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        metadata = fcsparser.parse(filename,
+                                   data_set = data_set,
+                                   meta_data_only = True)
+        
+    ret = []
+    for c in range(1, int(metadata["$PAR"]) + 1):
+        pnn = str(metadata.get("$P{}N".format(c), "")).strip()
+        pns = metadata.get("$P{}S".format(c), None)
+        pns = str(pns).strip() if pns is not None else None
+        if not pns or pns.lower() in ('nan', 'none'):
+            pns = None
+        ret.append((pnn, pns))
+    return ret

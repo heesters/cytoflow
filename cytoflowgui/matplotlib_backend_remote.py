@@ -47,9 +47,11 @@ passing the event information to the remote canvas which in turn runs the
 matplotlib event handlers.
 """
 
-import threading, logging, sys, traceback
+import threading, logging, sys, traceback, contextlib, pathlib
 
 import matplotlib.pyplot
+import matplotlib.collections
+import matplotlib.image
 from matplotlib.figure import Figure
 
 #from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -102,6 +104,56 @@ def log_exception():
     logger.error("Error: {0}\nLocation: {1}Thread: {2}" \
                   .format(err_string, err_loc, err_ctx) )
     
+VECTOR_FORMATS = ('.svg', '.svgz', '.pdf', '.eps', '.ps')
+
+# a scatterplot with this many points (or more) is embedded as an image in
+# vector exports, so the file stays small enough for Illustrator & co.
+RASTERIZE_MIN_POINTS = 2000
+
+@contextlib.contextmanager
+def publication_export(figure, path):
+    """
+    Settings for exporting a figure that will be edited in a vector graphics
+    program (Illustrator, Affinity Designer, Inkscape):
+    
+    - keep text as real, editable text (instead of converting it to outlines)
+    - embed large scatter / density layers as an image (at the export dpi),
+      while axes, labels and gates stay as vectors.  An SVG with 100,000
+      individual dots is enormous and very slow to edit.
+    """
+    
+    suffix = pathlib.Path(str(path)).suffix.lower() if path else ""
+    if suffix not in VECTOR_FORMATS:
+        yield
+        return
+    
+    changed = []
+    for artist in figure.findobj():
+        if artist.get_rasterized():
+            continue
+        big = False
+        if isinstance(artist, matplotlib.collections.Collection):
+            try:
+                big = len(artist.get_offsets()) >= RASTERIZE_MIN_POINTS \
+                      or len(artist.get_paths()) >= RASTERIZE_MIN_POINTS
+            except Exception:
+                big = False
+        elif isinstance(artist, matplotlib.image.AxesImage):
+            big = True
+        if big:
+            artist.set_rasterized(True)
+            changed.append(artist)
+    
+    try:
+        with matplotlib.rc_context({'svg.fonttype' : 'none',
+                                    'pdf.fonttype' : 42,
+                                    'ps.fonttype' : 42}):
+            yield
+    finally:
+        for artist in changed:
+            artist.set_rasterized(False)
+
+
 class FigureCanvasAggRemote(FigureCanvasAgg):
     """
     The canvas the figure renders into in the remote process (ie, the one
@@ -223,7 +275,8 @@ class FigureCanvasAggRemote(FigureCanvasAgg):
                             height = kwargs.pop('height')
                             self.figure.set_size_inches(width, height)
 
-                            FigureCanvasAgg.print_figure(self, *args, **kwargs)
+                            with publication_export(self.figure, args[0] if args else kwargs.get('filename')):
+                                FigureCanvasAgg.print_figure(self, *args, **kwargs)
                             
                             self.figure.set_size_inches(old_size[0], old_size[1])
                 else:

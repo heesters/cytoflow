@@ -207,6 +207,11 @@ class BaseView(HasStrictTraits):
         huelabel = kwargs.pop("huelabel", self.huefacet)
         if huelabel == "": huelabel = self.huefacet
         
+        # use the channels' display labels (set at import), if there are any
+        xlabel = util.channel_label(experiment, xlabel)
+        ylabel = util.channel_label(experiment, ylabel)
+        huelabel = util.channel_label(experiment, huelabel)
+        
         sharex = kwargs.pop("sharex", False)
         sharey = kwargs.pop("sharey", False)
         
@@ -378,6 +383,12 @@ class BaseView(HasStrictTraits):
             plt.suptitle(title)
             
         g.set_axis_labels(xlabel, ylabel)
+        
+        # labels that came from the data (eg, a column name) rather than
+        # from xlabel / ylabel
+        for ax in g.axes.flat:
+            ax.set_xlabel(util.channel_label(experiment, ax.get_xlabel()))
+            ax.set_ylabel(util.channel_label(experiment, ax.get_ylabel()))
       
     def _grid_plot(self, experiment, grid, cmap, **kwargs):
         raise NotImplementedError("You must override _grid_plot in a derived class")

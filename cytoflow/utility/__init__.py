@@ -27,7 +27,7 @@ custom traits, custom `matplotlib` widgets, custom `matplotlib` scales, and
 docstring handling.
 """
 
-from .util_functions import (cartesian, iqr, geom_mean, geom_sd, geom_sd_range,
+from .util_functions import (channel_label, cartesian, iqr, geom_mean, geom_sd, geom_sd_range,
                              geom_sem, geom_sem_range, num_hist_bins, sanitize_identifier, 
                              random_string, is_numeric, cov2corr)
 

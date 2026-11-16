@@ -1,5 +1,12 @@
 ## Unreleased
 
+- Channel axis labels: give each channel a free-text label at import (eg
+  "CD4 (FITC)"), or fill them from the marker names recorded in the FCS
+  file. Labels are used as axis titles on every plot. (`ImportOp.channel_labels`)
+- SVG / PDF export keeps text as editable text, and embeds large scatter /
+  density layers as an image, so exported figures open quickly in
+  Illustrator, Affinity Designer and Inkscape.
+
 - Easier gate drawing, especially on a laptop trackpad (eg, macOS):
   - Polygon gates close with a double-click; Backspace/Delete removes the
     last vertex; Escape starts over.

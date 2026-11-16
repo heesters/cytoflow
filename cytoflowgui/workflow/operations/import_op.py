@@ -52,6 +52,9 @@ class ValidPythonIdentifier(BaseCStr):
 class Channel(HasTraits):
     channel = String
     name = ValidPythonIdentifier
+    
+    # free-text display label (used for axis titles); can contain any text
+    label = Str
   
 
 @provides(IWorkflowOperation)
@@ -63,6 +66,7 @@ class ImportWorkflowOp(WorkflowOperation, ImportOp):
     tubes = List(Tube, estimate = True)
     conditions = Dict(Str, Str, estimate = True)
     channels = Dict(Str, Str, transient = True)
+    channel_labels = Dict(Str, Str, transient = True)
     name_metadata =  Enum(None, "$PnN", "$PnS", estimate = True)
     
     # how many events did we load?
@@ -79,8 +83,31 @@ class ImportWorkflowOp(WorkflowOperation, ImportOp):
     def reset_channels(self):
         self.channels_list = [Channel(channel = x, name = util.sanitize_identifier(x)) for x in self.original_channels]
 
+    def labels_from_markers(self):
+        """
+        Fill in empty channel labels with the stain / marker names recorded
+        in the (first) FCS file, eg ``CD4 (FITC-A)``.
+        """
+        if not self.tubes:
+            return
+        
+        from cytoflow.operations.import_op import fcs_marker_names
+        pairs = fcs_marker_names(self.tubes[0].file, data_set = self.data_set)
+        
+        # the channel names may be either $PnN or $PnS, so map from both
+        names = {}
+        for pnn, pns in pairs:
+            if pns and pns != pnn:
+                names[pnn] = "{} ({})".format(pns, pnn)
+                names[pns] = "{} ({})".format(pns, pnn)
+                
+        for c in self.channels_list:
+            if not c.label and c.channel in names:
+                c.label = names[c.channel]
+                
     def estimate(self, _):
         self.channels = {c.channel : c.name for c in self.channels_list}
+        self.channel_labels = {c.name : c.label for c in self.channels_list if c.label}
         if self.ignore_v_bool:
             warnings.warn("Only ignore voltages if you know what you're doing!",
                           util.CytoflowOpWarning)
@@ -106,6 +133,7 @@ class ImportWorkflowOp(WorkflowOperation, ImportOp):
         op = ImportOp()
         op.copy_traits(self, op.copyable_trait_names())
         op.channels = {c.channel : c.name for c in self.channels_list}
+        op.channel_labels = {c.name : c.label for c in self.channels_list if c.label}
         
         return dedent("""
             op_{idx} = {repr}
@@ -178,6 +206,12 @@ def _load_tube(data, version):
     return Tube(**data)
 
 
+@camel_registry.dumper(Channel, 'import-channel', version = 2)
+def _dump_channel_v2(channel):
+    return dict(channel = channel.channel,
+                name = channel.name,
+                label = channel.label)
+    
 @camel_registry.dumper(Channel, 'import-channel', version = 1)
 def _dump_channel(channel):
     return dict(channel = channel.channel,
@@ -185,6 +219,7 @@ def _dump_channel(channel):
      
      
 @camel_registry.loader('import-channel', version = 1)
+@camel_registry.loader('import-channel', version = 2)
 def _load_channel(data, version):
     return Channel(**data)
 

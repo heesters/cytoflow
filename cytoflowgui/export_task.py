@@ -253,7 +253,7 @@ class ExportTask(Task):
             if (self.width * self.dpi  > 2**16 or \
                 self.height * self.dpi > 2**16 or \
                 self.width * self.height * self.dpi ** 2 > 2 ** 30) and \
-                pathlib.Path(dialog.path).suffix in ['png', 'pgf', 'raw', 'rgba', 'jpg', 'jpeg', 'bmp', 'pcx', 'tif', 'tiff', 'xpm']:
+                pathlib.Path(dialog.path).suffix.lstrip('.').lower() in ['png', 'pgf', 'raw', 'rgba', 'jpg', 'jpeg', 'bmp', 'pcx', 'tif', 'tiff', 'xpm']:
                 error(None, "Can't export raster images with a height or width larger than 65535 pixels, "
                             "or a total image size of greater than 2**30 pixels. "
                             "Decrease your image size or DPI, or use a vector format (like PDF or SVG).")

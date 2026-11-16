@@ -29,9 +29,21 @@ Import FCS files and associate them with experimental conditions (metadata.)
     (must contain only letters, numbers and underscores and must start with
     a letter or underscore.)
     
+    The third box is the channel's **axis label**: free text (spaces,
+    punctuation, Greek letters are all fine) that is used as the axis title
+    on every plot of that channel.  Use it to fix channel names that are
+    wrong or cryptic on the cytometer, eg ``CD4 (FITC)`` instead of
+    ``BL1-A``.  Leave it empty to use the channel name.
+    
 .. object:: Reset channel names
 
     Reset the channels and channel names.
+    
+.. object:: Label channels with marker names from FCS
+
+    Fill in the empty axis labels with the stain / marker names recorded in
+    the FCS file (the ``$PnS`` keyword), eg ``CD4 (BL1-A)``.  Check them: 
+    these are whatever was typed into the cytometer software.
 
 .. object:: Events per sample
 
@@ -127,12 +139,19 @@ class ChannelHandler(Controller):
                                Item(label = '-->'),
                                Item('name',
                                     editor = TextEditor(auto_set = False), 
+                                    show_label = False),
+                               Item('label',
+                                    editor = TextEditor(auto_set = False,
+                                                        placeholder = "Axis label"),
+                                    tooltip = "Free-text label used for plot axes; "
+                                              "can contain spaces and punctuation",
                                     show_label = False)))
     
 
 class ImportHandler(OpHandler):
     setup_event = Button(label="Set up experiment...")
     reset_channels_event = Event()
+    marker_labels_event = Event()
     samples = Property(depends_on = 'model.tubes', status = True)
     dialog_model = Instance(ExperimentDialogModel)
         
@@ -148,6 +167,9 @@ class ImportHandler(OpHandler):
                     Item('handler.reset_channels_event',
                          editor = ButtonEditor(value = True,
                                                label = "Reset channel names")),
+                    Item('handler.marker_labels_event',
+                         editor = ButtonEditor(value = True,
+                                               label = "Label channels with marker names from FCS")),
                     show_labels = False,
                     visible_when = 'object.channels_list'),
              Item('object.events',
@@ -180,6 +202,10 @@ class ImportHandler(OpHandler):
     @observe('reset_channels_event')    
     def _on_reset_channels(self, _):
         self.model.reset_channels()
+        
+    @observe('marker_labels_event')    
+    def _on_marker_labels(self, _):
+        self.model.labels_from_markers()
         
     @cached_property
     def _get_samples(self):
