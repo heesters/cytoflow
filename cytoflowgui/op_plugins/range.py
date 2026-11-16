@@ -27,6 +27,10 @@ To adjust an existing range, drag either of its edges, or drag the middle to
 move the whole range.  A single click (without dragging) leaves the 
 range unchanged.
 
+**Zooming:** pinch on a trackpad (or scroll a mouse wheel, or hold 
+Ctrl / Cmd and scroll) to zoom in around the cursor; scroll with two fingers
+to pan.  The zoom is kept while you adjust the gate.  Press **0** to reset it.
+
 .. object:: Name
 
     The operation name.  Used to name the new metadata field that's created by 

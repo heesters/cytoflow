@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Zoom and pan on plots: pinch / two-finger scroll on a trackpad, mouse
+  wheel or Ctrl/Cmd+scroll to zoom. The zoom is kept while gates are
+  adjusted (the plot is redrawn after every change); press 0 to reset.
+
 - Channel axis labels: give each channel a free-text label at import (eg
   "CD4 (FITC)"), or fill them from the marker names recorded in the FCS
   file. Labels are used as axis titles on every plot. (`ImportOp.channel_labels`)

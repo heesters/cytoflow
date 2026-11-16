@@ -36,6 +36,10 @@ a new spot. Creates a new metadata column named `name`, with values
     This matches the order of FACSDiva quad gates.
     
 
+**Zooming:** pinch on a trackpad (or scroll a mouse wheel, or hold 
+Ctrl / Cmd and scroll) to zoom in around the cursor; scroll with two fingers
+to pan.  The zoom is kept while you adjust the gate.  Press **0** to reset it.
+
 .. object:: Name
 
     The operation name.  Used to name the new metadata field that's created by 

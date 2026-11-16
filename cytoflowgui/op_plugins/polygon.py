@@ -34,6 +34,10 @@ polygon, **double-click** (or click the first vertex a second time).
 
 If keys don't seem to work, click the plot once so it has keyboard focus.
 
+**Zooming:** pinch on a trackpad (or scroll a mouse wheel, or hold 
+Ctrl / Cmd and scroll) to zoom in around the cursor; scroll with two fingers
+to pan.  The zoom is kept while you adjust the gate.  Press **0** to reset it.
+
 .. object:: Name
 
     The operation name.  Used to name the new metadata field that's created by 

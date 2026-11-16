@@ -377,6 +377,20 @@ class WorkflowItem(HasStrictTraits):
                 plot_params = {k:v for k, v in plot_params.items()
                                if not (isinstance(v, str) and not v)}
                 
+                # tell the canvas which plot this is, so it can remember (and
+                # re-apply) the user's zoom across replots
+                canvas = plt.gcf().canvas
+                if hasattr(canvas, 'zoom_key'):
+                    v = self.current_view
+                    canvas.zoom_key = repr((v.id, 
+                                       getattr(v, 'channel', None),
+                                       getattr(v, 'xchannel', None),
+                                       getattr(v, 'ychannel', None),
+                                       getattr(v, 'scale', None),
+                                       getattr(v, 'xscale', None),
+                                       getattr(v, 'yscale', None),
+                                       getattr(v, 'current_plot', None)))
+                
                 if self.result:
                     plt.clf()
                     self.current_view.plot(self.result, **plot_params)
@@ -394,6 +408,10 @@ class WorkflowItem(HasStrictTraits):
                     self.current_view.interactive = True
                    
                 this.last_view_plotted = self.current_view
+                
+                canvas = plt.gcf().canvas
+                if hasattr(canvas, 'restore_zoom'):
+                    canvas.restore_zoom()
                   
                 # the remote canvas/pyplot interface of the multiprocess backend
                 # is NOT interactive.  this call lets us batch together all 

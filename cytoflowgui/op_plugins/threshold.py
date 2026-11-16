@@ -28,6 +28,10 @@ Once it's set, drag the line to move it.  A single click elsewhere on the plot
 is ignored (so the gate isn't moved by accident); double-click to move the
 threshold straight to a new spot.
 
+**Zooming:** pinch on a trackpad (or scroll a mouse wheel, or hold 
+Ctrl / Cmd and scroll) to zoom in around the cursor; scroll with two fingers
+to pan.  The zoom is kept while you adjust the gate.  Press **0** to reset it.
+
 .. object:: Name
 
     The operation name.  Used to name the new metadata field that's created by 

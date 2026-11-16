@@ -77,6 +77,8 @@ class Msg(object):
     MOUSE_DOUBLE_CLICK_EVENT = "MOUSE_DOUBLE_CLICK"
     KEY_PRESS_EVENT = "KEY_PRESS"
     KEY_RELEASE_EVENT = "KEY_RELEASE"
+    ZOOM_EVENT = "ZOOM"
+    PAN_EVENT = "PAN"
     
     PRINT = "PRINT"
     
@@ -299,6 +301,53 @@ class FigureCanvasQTAggLocal(FigureCanvasQTAgg):
             self._send(msg)
 
 
+    def _event_xy(self, pos):
+        x = pos.x() * self.device_pixel_ratio
+        y = (self.height() - pos.y()) * self.device_pixel_ratio
+        return x, y
+    
+    
+    def wheelEvent(self, event):
+        """
+        Override the Qt event wheelEvent.
+        
+        - Trackpad (two-finger) scrolling pans the plot.
+        - A mouse wheel, or scrolling with Ctrl / Cmd held, zooms the plot
+          around the cursor.
+        """
+        x, y = self._event_xy(event.position() if hasattr(event, 'position') else event.pos())
+        pixel = event.pixelDelta()
+        angle = event.angleDelta()
+        zoom_modifier = bool(event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier)
+        
+        if not pixel.isNull() and not zoom_modifier:
+            # a trackpad: pan.  qt's pixelDelta already follows the 
+            # "natural scrolling" setting, so the content follows the fingers
+            self._send((Msg.PAN_EVENT, (x, y, 
+                                        pixel.x() * self.device_pixel_ratio, 
+                                        -pixel.y() * self.device_pixel_ratio)))
+        else:
+            steps = angle.y() if angle.y() else angle.x()
+            if not steps and not pixel.isNull():
+                steps = pixel.y() * 4
+            if steps:
+                # 120 units == one notch of a mouse wheel == zoom by 20%
+                self._send((Msg.ZOOM_EVENT, (x, y, 1.2 ** (steps / 120.0))))
+        event.accept()
+        
+        
+    def event(self, event):
+        """
+        Handle the trackpad "pinch" gesture (macOS) as a zoom.
+        """
+        if event.type() == QtCore.QEvent.Type.NativeGesture:
+            if event.gestureType() == QtCore.Qt.NativeGestureType.ZoomNativeGesture:
+                x, y = self._event_xy(event.localPos().toPoint())
+                self._send((Msg.ZOOM_EVENT, (x, y, 1.0 + event.value())))
+                return True
+        return super().event(event)
+    
+    
     def _key_payload(self, event):
         key = self._get_key(event)
         if key is None:

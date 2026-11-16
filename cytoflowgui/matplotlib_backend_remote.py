@@ -84,6 +84,8 @@ class Msg(object):
     MOUSE_DOUBLE_CLICK_EVENT = "MOUSE_DOUBLE_CLICK"
     KEY_PRESS_EVENT = "KEY_PRESS"
     KEY_RELEASE_EVENT = "KEY_RELEASE"
+    ZOOM_EVENT = "ZOOM"
+    PAN_EVENT = "PAN"
     
     DPI = "DPI"
     PRINT = "PRINT"
@@ -104,6 +106,9 @@ def log_exception():
     logger.error("Error: {0}\nLocation: {1}Thread: {2}" \
                   .format(err_string, err_loc, err_ctx) )
     
+ZOOM_RESET_KEYS = ('0', 'ctrl+0', 'cmd+0')
+ZOOM_HINT_GID = 'cytoflow-zoom-hint'
+
 VECTOR_FORMATS = ('.svg', '.svgz', '.pdf', '.eps', '.ps')
 
 # a scatterplot with this many points (or more) is embedded as an image in
@@ -122,10 +127,24 @@ def publication_export(figure, path):
       individual dots is enormous and very slow to edit.
     """
     
-    suffix = pathlib.Path(str(path)).suffix.lower() if path else ""
-    if suffix not in VECTOR_FORMATS:
-        yield
-        return
+    # never export the on-screen "zoomed in" hint
+    hints = [t for t in figure.texts if t.get_gid() == ZOOM_HINT_GID]
+    for t in hints:
+        t.set_visible(False)
+    try:
+        suffix = pathlib.Path(str(path)).suffix.lower() if path else ""
+        if suffix not in VECTOR_FORMATS:
+            yield
+        else:
+            with _vector_export(figure):
+                yield
+    finally:
+        for t in hints:
+            t.set_visible(True)
+            
+
+@contextlib.contextmanager
+def _vector_export(figure):
     
     changed = []
     for artist in figure.findobj():
@@ -181,6 +200,13 @@ class FigureCanvasAggRemote(FigureCanvasAgg):
         self.blit_left = None
         
         self.working = False
+        
+        # zoom state.  the plot is completely redrawn every time anything 
+        # changes (eg, every time a gate is moved), so remember the zoomed-in
+        # limits for each view (keyed by `zoom_key`, which is set before
+        # each plot) and re-apply them after the view is replotted.
+        self.zoom_key = None
+        self._zoomed_limits = {}   # zoom_key -> [(xlim, ylim) per axes]
         
         self.update_remote = threading.Event()
                 
@@ -257,8 +283,26 @@ class FigureCanvasAggRemote(FigureCanvasAgg):
                             #FigureCanvasAgg.motion_notify_event(self, x, y)
                             MouseEvent("motion_notify_event", self, x, y, modifiers = None, guiEvent = None)._process()
                             
+                elif msg == Msg.ZOOM_EVENT:
+                    (x, y, factor) = payload
+                    if self.process_events.is_set():
+                        with self.plot_lock:
+                            self.zoom(x, y, factor)
+                            
+                elif msg == Msg.PAN_EVENT:
+                    (x, y, dx, dy) = payload
+                    if self.process_events.is_set():
+                        with self.plot_lock:
+                            self.pan(x, y, dx, dy)
+                            
                 elif msg in (Msg.KEY_PRESS_EVENT, Msg.KEY_RELEASE_EVENT):
                     (key, x, y) = payload
+                    if msg == Msg.KEY_PRESS_EVENT and key in ZOOM_RESET_KEYS:
+                        if self.process_events.is_set():
+                            with self.plot_lock:
+                                self.reset_zoom()
+                        continue
+
                     name = "key_press_event" if msg == Msg.KEY_PRESS_EVENT \
                            else "key_release_event"
                     if self.process_events.is_set():
@@ -371,6 +415,111 @@ class FigureCanvasAggRemote(FigureCanvasAgg):
             
         self.update_remote.set()
         
+        
+    def _axes_at(self, x, y):
+        for ax in self.figure.axes:
+            if ax.get_navigate() and ax.bbox.contains(x, y):
+                return ax
+        return None
+    
+    @staticmethod
+    def _scaled_limits(axis, lim):
+        """Limits in 'scaled' space (eg, after the log or logicle transform)"""
+        t = axis.get_transform()
+        return np.asarray(t.transform(np.asarray(lim, dtype = float)), dtype = float).ravel()
+    
+    @staticmethod
+    def _unscaled_limits(axis, lim):
+        t = axis.get_transform().inverted()
+        return tuple(float(v) for v in np.asarray(t.transform(np.asarray(lim, dtype = float))).ravel())
+    
+    def _remember_zoom(self):
+        if self.zoom_key is not None:
+            self._zoomed_limits[self.zoom_key] = \
+                [(ax.get_xlim(), ax.get_ylim()) for ax in self.figure.axes]
+        self._show_zoom_hint(True)
+    
+    def _show_zoom_hint(self, show):
+        for t in [t for t in self.figure.texts if t.get_gid() == ZOOM_HINT_GID]:
+            t.remove()
+        if show:
+            self.figure.text(0.995, 0.005, "zoomed in - press 0 to reset",
+                             ha = 'right', va = 'bottom', fontsize = 'x-small',
+                             color = '0.4', gid = ZOOM_HINT_GID)
+    
+    def zoom(self, x, y, factor):
+        """
+        Zoom in (factor > 1) or out (factor < 1) on the axes under (x, y),
+        keeping the point under the cursor fixed.
+        """
+        ax = self._axes_at(x, y)
+        if ax is None or not np.isfinite(factor) or factor <= 0:
+            return
+        
+        cx, cy = ax.transData.inverted().transform((x, y))
+        for axis, lim, c, setter in ((ax.xaxis, ax.get_xlim(), cx, ax.set_xlim),
+                                     (ax.yaxis, ax.get_ylim(), cy, ax.set_ylim)):
+            s = self._scaled_limits(axis, lim)
+            sc = float(self._scaled_limits(axis, [c])[0])
+            if not (np.all(np.isfinite(s)) and np.isfinite(sc)):
+                continue
+            setter(self._unscaled_limits(axis, sc + (s - sc) / factor))
+            
+        self._remember_zoom()
+        self.draw()
+        
+    def pan(self, x, y, dx, dy):
+        """Pan the axes under (x, y) by (dx, dy) pixels"""
+        ax = self._axes_at(x, y)
+        if ax is None:
+            return
+        
+        for axis, lim, d, size, setter in ((ax.xaxis, ax.get_xlim(), dx, ax.bbox.width, ax.set_xlim),
+                                           (ax.yaxis, ax.get_ylim(), dy, ax.bbox.height, ax.set_ylim)):
+            if not d or not size:
+                continue
+            s = self._scaled_limits(axis, lim)
+            if not np.all(np.isfinite(s)):
+                continue
+            shift = -d / size * (s[1] - s[0])
+            setter(self._unscaled_limits(axis, s + shift))
+            
+        self._remember_zoom()
+        self.draw()
+        
+    def reset_zoom(self):
+        if self.zoom_key in self._zoomed_limits:
+            del self._zoomed_limits[self.zoom_key]
+            # replotting would restore the original limits, but we don't 
+            # have access to the view from here -- so autoscale instead.
+            for ax in self.figure.axes:
+                if ax.get_navigate():
+                    lim = getattr(ax, '_cytoflow_original_limits', None)
+                    if lim:
+                        ax.set_xlim(lim[0])
+                        ax.set_ylim(lim[1])
+                    else:
+                        ax.autoscale()
+            self._show_zoom_hint(False)
+            self.draw()
+            
+    def restore_zoom(self):
+        """
+        Called after a view is (re)plotted: re-apply the remembered zoom, if 
+        the plot has the same layout as when it was zoomed.
+        """
+        for ax in self.figure.axes:
+            ax._cytoflow_original_limits = (ax.get_xlim(), ax.get_ylim())
+            
+        limits = self._zoomed_limits.get(self.zoom_key)
+        if not limits or len(limits) != len(self.figure.axes):
+            return
+        
+        for ax, (xlim, ylim) in zip(self.figure.axes, limits):
+            if ax.get_navigate():
+                ax.set_xlim(xlim)
+                ax.set_ylim(ylim)
+        self._show_zoom_hint(True)
         
     def set_working(self, working):
         self.working = working
