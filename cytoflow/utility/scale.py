@@ -165,12 +165,29 @@ def scale_factory(scale, experiment, **scale_params):
         
     **scale_params : kwargs
         Other parameters to pass to the scale constructor
+        
+    Notes
+    -----
+    If ``channel`` is given and the experiment's metadata for that channel
+    has transform parameters for this scale (set by 
+    `cytoflow.operations.ScaleSettingsOp`, stored in 
+    ``experiment.metadata[channel]['scale_params'][scale]``), they are used
+    -- unless they are passed explicitly in ``scale_params``.
     """
     
     scale = scale.lower()
         
     if scale not in _scale_mapping:
         raise CytoflowError("Unknown scale type {0}".format(scale))
+        
+    channel = scale_params.get('channel')
+    if channel and experiment is not None:
+        try:
+            saved = experiment.metadata[channel].get('scale_params', {}).get(scale, {})
+        except (KeyError, AttributeError, TypeError):
+            saved = {}
+        for k, v in saved.items():
+            scale_params.setdefault(k, v)
         
     return _scale_mapping[scale](experiment = experiment, **scale_params)
  
@@ -202,6 +219,7 @@ def get_default_scale():
 import cytoflow.utility.linear_scale   # @UnusedImport
 import cytoflow.utility.log_scale      # @UnusedImport
 import cytoflow.utility.logicle_scale  # @UnusedImport
+import cytoflow.utility.arcsinh_scale  # @UnusedImport
 
 # this scale is REALLY SLOW.  If you want it for your analysis, you can
 # import it into your script, that will register it with the global list.

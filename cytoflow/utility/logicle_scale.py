@@ -139,7 +139,7 @@ class LogicleScale(HasStrictTraits):
     features = List(Str)
     data = Array
 
-    W = Property(Float, depends_on = "[experiment, channel, M, _T, r]")
+    W = Property(Float, depends_on = "[experiment, channel, M, _T, r, _W]")
     M = Float(4.5, desc = "the width of the display in log10 decades")
     A = Float(0.0, desc = "additional decades of negative data to include.")
     r = Float(0.05, desc = "quantile to use for estimating the W parameter.")

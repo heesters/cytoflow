@@ -36,6 +36,7 @@ from .multi_channel_stat import MultiChannelStatisticWorkflowOp, Function as Mul
 from .xform_stat import TransformStatisticWorkflowOp
 from .merge_stat import MergeStatisticsWorkflowOp
 from .ratio import RatioWorkflowOp
+from .scale_settings import ScaleSettingsWorkflowOp
 
 from .binning import BinningWorkflowOp, BinningWorkflowView
 from .gaussian_1d import GaussianMixture1DWorkflowOp, GaussianMixture1DWorkflowView

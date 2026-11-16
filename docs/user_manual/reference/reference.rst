@@ -188,6 +188,12 @@ Statistics and Transforms
 		:link: operations/ratio
 		:link-type: doc
 	
+	.. grid-item-card:: Axis Transforms
+		:class-card: gallery-card
+		:img-top: operations/images/scale_settings.svg
+		:link: operations/scale_settings
+		:link-type: doc
+	
 	
 	
 Views

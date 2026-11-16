@@ -47,6 +47,7 @@ from .multi_channel_stat import MultiChannelStatisticPlugin
 from .xform_stat import TransformStatisticPlugin
 from .merge_stat import MergeStatisticsPlugin
 from .ratio import RatioPlugin
+from .scale_settings import ScaleSettingsPlugin
 
 # # data-driven
 from .binning import BinningPlugin

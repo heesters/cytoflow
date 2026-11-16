@@ -1,5 +1,12 @@
 ## Unreleased
 
+- New **Axis Transforms** operation (`ScaleSettingsOp`): set the logicle
+  W / M / A and arcsinh cofactor per channel (like FlowJo's "customize
+  axis"); all later plots and gates use them.
+- New **arcsinh** scale (`arcsinh(x / cofactor)`), standard for mass and
+  spectral cytometry.
+- Fix: an explicit logicle `W` passed to the scale could be ignored (the
+  cached value didn't depend on it).
 - Histogram overlays: "normalize to mode" (each histogram's peak = 100%)
   and staggered (offset) overlays, in the library and the GUI.
 - Back-gating: scatter and density plots have a `highlight` setting

@@ -38,6 +38,7 @@ from .quad import QuadOp
 
 # data-driven
 from .ratio import RatioOp
+from .scale_settings import ScaleSettingsOp
 from .density import DensityGateOp
 from .gaussian import GaussianMixtureOp
 from .kmeans import KMeansOp

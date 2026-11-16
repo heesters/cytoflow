@@ -80,6 +80,7 @@ from .operations.color_translation import ColorTranslationOp
 
 # data-driven
 from .operations.ratio import RatioOp
+from .operations.scale_settings import ScaleSettingsOp
 from .operations.density import DensityGateOp
 from .operations.gaussian import GaussianMixtureOp
 from .operations.kmeans import KMeansOp
