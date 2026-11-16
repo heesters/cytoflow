@@ -90,6 +90,7 @@ from .operations.kmeans import KMeansOp
 from .operations.flowpeaks import FlowPeaksOp
 from .operations.pca import PCAOp
 from .operations.tsne import tSNEOp
+from .operations.umap import UMAPOp
 from .operations.som import SOMOp
 from .operations.mst import MSTOp
 from .operations.register import RegistrationOp

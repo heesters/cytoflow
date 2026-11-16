@@ -173,6 +173,11 @@ Dimensionality Reduction
 		:img-top: /operations/tsne-1.png
 		:link: operations/tsne
 		:link-type: doc
+
+	.. grid-item-card:: Uniform Manifold Approximation and Projection (UMAP)
+		:img-top: /operations/umap-1.png
+		:link: operations/umap
+		:link-type: doc
 		
 
 Statistics and Transforms

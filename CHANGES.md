@@ -48,6 +48,11 @@
   `$SPILL`), like FlowJo and FCS Express do. Works with renamed channels,
   can load a matrix from a CSV file (eg exported from FlowJo), and the GUI
   shows the matrix as an editable table plus a heat map of the spillover.
+- New UMAP (Uniform Manifold Approximation and Projection) dimensionality
+  reduction operation, in both the library (`UMAPOp`) and the GUI. Like
+  tSNE, it fits to a sample of the events and then embeds all of them;
+  exposes the number of components, neighbors, minimum distance, metric and
+  an optional random seed. Requires the `umap-learn` package.
 - Channel axis labels: give each channel a free-text label at import (eg
   "CD4 (FITC)"), or fill them from the marker names recorded in the FCS
   file. Labels are used as axis titles on every plot. (`ImportOp.channel_labels`)

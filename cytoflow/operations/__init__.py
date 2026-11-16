@@ -48,6 +48,7 @@ from .kmeans import KMeansOp
 from .flowpeaks import FlowPeaksOp
 from .pca import PCAOp
 from .tsne import tSNEOp
+from .umap import UMAPOp
 from .som import SOMOp
 from .mst import MSTOp
 from .register import RegistrationOp

@@ -36,6 +36,7 @@ dependencies = [
     'natsort',
     'numba',
     'opentsne',
+    'umap-learn',
     'igraph==0.11.*',
     'python-igraph==0.11.*',
     'scikit-fda',

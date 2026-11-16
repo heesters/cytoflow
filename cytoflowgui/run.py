@@ -220,6 +220,7 @@ def run_gui():
                                         PCAPlugin,
                                         FlowCleanPlugin, 
                                         tSNEPlugin,
+                                        UMAPPlugin,
                                         SOMPlugin,
                                         MSTPlugin as MSTOpPlugin,
                                         RegistrationPlugin)
@@ -298,6 +299,7 @@ def run_gui():
                   FlowPeaksPlugin(),
                   PCAPlugin(),
                   tSNEPlugin(),
+                  UMAPPlugin(),
                   MSTOpPlugin(),
                   CompensationPlugin(),
                   AutofluorescencePlugin(),
