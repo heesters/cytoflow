@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Back-gating: scatter and density plots have a `highlight` setting
+  ("Back-gate" in the GUI) that draws a gate's events on top of all events,
+  in a contrasting color.
 - Fix `BleedthroughLinearOp.set_from_fcs` reading the FCS spillover matrix
   transposed (so it compensated with the wrong coefficients).
 - Undo / redo (Edit menu, Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z) for changes to

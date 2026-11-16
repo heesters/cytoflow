@@ -43,6 +43,13 @@ Plots a 2-dimensional density plot.
 
     Scale the color palette and the color bar
     
+.. object:: Back-gate (highlight)
+
+    "Back-gating": choose a gate, and the events in that gate are drawn on
+    top of all the others, in a contrasting color, so you can see where a
+    population falls on this plot.  Pick a True/False gate (eg, a polygon,
+    range or threshold gate.)
+
 .. object:: Tab Facet
 
     Make multiple plots in differen tabs; each tab's plot has a unique value
@@ -121,6 +128,12 @@ class DensityHandler(ViewHandler):
                          label = "Vertical\nFacet"),
                     Item('huescale',
                          label = "Color\nScale"),
+                    Item('highlight',
+                         editor=ExtendableEnumEditor(name='context_handler.conditions_names',
+                                                     extra_items = {"None" : ""}),
+                         label = "Back-gate\n(highlight)",
+                         tooltip = "Draw the events in this gate on top, in a "
+                                   "contrasting color"),
                     Item('plotfacet',
                          editor=ExtendableEnumEditor(name='context_handler.conditions_names',
                                                      extra_items = {"None" : ""}),

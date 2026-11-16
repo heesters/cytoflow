@@ -60,6 +60,23 @@ class ScatterplotWorkflowView(WorkflowFacetView, ScatterplotView):
         
         
 ### Serialization
+@camel_registry.dumper(ScatterplotWorkflowView, 'scatterplot', version = 4)
+def _dump_v4(view):
+    return dict(xchannel = view.xchannel,
+                xscale = view.xscale,
+                ychannel = view.ychannel,
+                yscale = view.yscale,
+                huechannel = view.huechannel,
+                xfacet = view.xfacet,
+                yfacet = view.yfacet,
+                huefacet = view.huefacet,
+                huescale = view.huescale,
+                plotfacet = view.plotfacet,
+                highlight = view.highlight,
+                subset_list = view.subset_list,
+                plot_params = view.plot_params,
+                current_plot = view.current_plot)
+
 @camel_registry.dumper(ScatterplotWorkflowView, 'scatterplot', version = 3)
 def _dump_v3(view):
     return dict(xchannel = view.xchannel,

@@ -26,7 +26,7 @@ Plot a 2D density plot.
 `DensityView` -- the `IView` class that makes the plot.
 """
 
-from traits.api import provides, Constant
+from traits.api import provides, Constant, Str, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,6 +37,7 @@ import cytoflow.utility as util
 from .i_view import IView
 
 from .base_views import Base2DView
+from .highlight import highlight_mask, draw_highlight, pop_highlight_kwargs
 
 @provides(IView)
 class DensityView(Base2DView):
@@ -48,6 +49,13 @@ class DensityView(Base2DView):
     
     huefacet : None
         You must leave the hue facet unset!
+        
+    highlight : Str
+        "Back-gating": draw these events as dots on top of the density plot,
+        in a contrasting color.  Either the name of a True/False condition 
+        (eg, a gate) or an expression, eg ``"Quad == 'Quad_2'"``.  The
+        dots' look is set by the ``highlight_color``, ``highlight_size``
+        and ``highlight_alpha`` plot parameters.
         
     Examples
     --------
@@ -93,6 +101,9 @@ class DensityView(Base2DView):
     friend_id = Constant("Density Plot")
     
     huefacet = Constant(None)
+    highlight = Str
+    
+    _highlight_mask = Any(transient = True)
     
     def plot(self, experiment, **kwargs):
         """
@@ -126,10 +137,14 @@ class DensityView(Base2DView):
         """
         
         kwargs.setdefault('palette', 'viridis')
+        self._highlight_mask = highlight_mask(experiment, self.highlight) \
+                               if self.highlight else None
         super().plot(experiment, **kwargs)
         
     def _grid_plot(self, experiment, grid, cmap, **kwargs):
 
+        highlight_kwargs = pop_highlight_kwargs(kwargs)
+        
         kwargs.setdefault('antialiased', False)
         kwargs.setdefault('linewidth', 0)
         kwargs.setdefault('edgecolors', 'face')
@@ -179,6 +194,11 @@ class DensityView(Base2DView):
             kwargs['norm'] = hue_scale.norm()
         
         grid.map(_densityplot, self.xchannel, self.ychannel, xbins = xbins, ybins = ybins, **kwargs)
+        
+        if self._highlight_mask is not None:
+            grid.map(draw_highlight, self.xchannel, self.ychannel, 
+                     mask = self._highlight_mask,
+                     highlight_kwargs = highlight_kwargs)
                
         return dict(xlim = xlim,
                     xscale = xscale,

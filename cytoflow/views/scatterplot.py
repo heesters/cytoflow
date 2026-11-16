@@ -30,12 +30,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from warnings import warn
 
-from traits.api import provides, Constant, Str
+from traits.api import provides, Constant, Str, Any
 
 import cytoflow.utility as util
 
 from .i_view import IView
 from .base_views import Base2DView
+from .highlight import highlight_mask, draw_highlight, pop_highlight_kwargs, BACKGROUND_COLOR
 
 @provides(IView)
 class ScatterplotView(Base2DView):
@@ -49,6 +50,12 @@ class ScatterplotView(Base2DView):
         If set, color the points using a normed color scale. The norm function
         is set by `huescale`, and the color palette can be changed by passing
         the ``palette`` parameter to `plot`.  
+        
+    highlight : Str
+        "Back-gating": draw these events on top of the others, in a 
+        contrasting color, and draw the rest of the events in grey.  Either
+        the name of a True/False condition (eg, a gate) or an expression,
+        eg ``"Quad == 'Quad_2'"``.
     
     Examples
     --------
@@ -83,6 +90,9 @@ class ScatterplotView(Base2DView):
     id = Constant('cytoflow.view.scatterplot')
     friend_id = Constant("Scatter Plot")
     huechannel = Str
+    highlight = Str
+    
+    _highlight_mask = Any(transient = True)
     
     def plot(self, experiment, **kwargs):
         """
@@ -100,6 +110,10 @@ class ScatterplotView(Base2DView):
         marker : a matplotlib marker style, usually a string
             Specfies the glyph to draw for each point on the scatterplot.
             See `matplotlib.markers <http://matplotlib.org/api/markers_api.html#module-matplotlib.markers>`_ for examples.  Default: 'o'
+            
+        highlight_color, highlight_size, highlight_alpha
+            The color, size (in points^2) and alpha of the highlighted events,
+            if `highlight` is set.
             
         
         Notes
@@ -120,6 +134,9 @@ class ScatterplotView(Base2DView):
             kwargs.setdefault('palette', 'viridis_r')
             kwargs.setdefault('huelabel', self.huechannel)
             
+        self._highlight_mask = highlight_mask(experiment, self.highlight) \
+                               if self.highlight else None
+            
         super().plot(experiment, **kwargs)
         
     def _grid_plot(self, experiment, grid, cmap, **kwargs):
@@ -136,6 +153,11 @@ class ScatterplotView(Base2DView):
         scale = kwargs.pop('scale')
         xscale = scale[self.xchannel]
         yscale = scale[self.ychannel]
+        
+        highlight_kwargs = pop_highlight_kwargs(kwargs)
+        if self._highlight_mask is not None and not self.huefacet and not self.huechannel:
+            # draw everything else in grey
+            kwargs['color'] = BACKGROUND_COLOR
 
         if self.huechannel:
             if isinstance(cmap, list):
@@ -151,6 +173,11 @@ class ScatterplotView(Base2DView):
         else:
             norm = None
             grid.map(plt.scatter, self.xchannel, self.ychannel, **kwargs)   
+            
+        if self._highlight_mask is not None:
+            grid.map(draw_highlight, self.xchannel, self.ychannel, 
+                     mask = self._highlight_mask,
+                     highlight_kwargs = highlight_kwargs)
         
         return dict(xlim = xlim,
                     xscale = xscale,
