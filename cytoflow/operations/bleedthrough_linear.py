@@ -288,11 +288,12 @@ class BleedthroughLinearOp(HasStrictTraits):
         # the channel names are the next num_channels items
         channels = spill[0:num_channels]
         
-        # the rest is the n*n matrix of spillover coefficients. value i,j is the
-        # cpillover from parameter i to parameter j.
+        # the rest is the n*n matrix of spillover coefficients, row by row.
+        # value i,j (ie, spill[i * n + j]) is the spillover from parameter i 
+        # to parameter j.  (this used to read the matrix transposed.)
         spill = spill[num_channels:]
         
-        spillover_matrix = {(channels[i], channels[j]) : float(spill[j * num_channels + i])
+        spillover_matrix = {(channels[i], channels[j]) : float(spill[i * num_channels + j])
                             for i, j in itertools.product(range(num_channels), range(num_channels))}
 
         self.spillover = spillover_matrix

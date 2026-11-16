@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Fix `BleedthroughLinearOp.set_from_fcs` reading the FCS spillover matrix
+  transposed (so it compensated with the wrong coefficients).
 - Undo / redo (Edit menu, Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z) for changes to
   operation and view settings -- including gates drawn on the plot -- and
   for adding or deleting operations.

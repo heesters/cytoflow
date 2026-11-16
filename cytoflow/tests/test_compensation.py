@@ -315,3 +315,29 @@ class TestCompensationFCS(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestBleedthroughFromFCS(unittest.TestCase):
+    """
+    BleedthroughLinearOp.set_from_fcs must read the FCS spillover matrix
+    the same way CompensationOp does (row i = spillover *from* channel i).
+    It used to read it transposed.
+    """
+    
+    def testSameMatrix(self):
+        import os
+        from cytoflow.operations.import_op import parse_tube
+        from cytoflow.operations.compensation import fcs_spillover
+        
+        fcs = os.path.join(os.path.dirname(__file__), 'data', 'instruments', 'BD - FACS Aria II.fcs')
+        op = flow.BleedthroughLinearOp()
+        op.set_from_fcs(fcs)
+        
+        df = fcs_spillover(parse_tube(fcs, metadata_only = True)[0])
+        asymmetric = False
+        for frm in df.index:
+            for to in df.columns:
+                self.assertAlmostEqual(op.spillover[(frm, to)], df.loc[frm, to])
+                if abs(df.loc[frm, to] - df.loc[to, frm]) > 1e-6:
+                    asymmetric = True
+        self.assertTrue(asymmetric, "test needs an asymmetric matrix")
