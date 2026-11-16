@@ -72,6 +72,7 @@ from .register import RegistrationPlugin
 # tasbe
 from .bleedthrough_linear import BleedthroughLinearPlugin
 from .compensation import CompensationPlugin
+from .autospill import AutoSpillPlugin
 from .bead_calibration import BeadCalibrationPlugin
 from .autofluorescence import AutofluorescencePlugin
 from .color_translation import ColorTranslationPlugin

@@ -60,6 +60,7 @@ from .autofluorescence import AutofluorescenceWorkflowOp, AutofluorescenceWorkfl
 from .bead_calibration import BeadCalibrationWorkflowOp, BeadCalibrationWorkflowView, Unit as BeadCalibrationUnit
 from .bleedthrough_linear import BleedthroughLinearWorkflowOp, BleedthroughLinearWorkflowView, Channel as BleedthroughChannel, Spillover as BleedthroughSpillover
 from .compensation import CompensationWorkflowOp, CompensationWorkflowView, Spillover as CompensationSpillover
+from .autospill import AutoSpillWorkflowOp
 from .color_translation import ColorTranslationWorkflowOp, ColorTranslationWorkflowView, Control as ColorTranslationControl
 from .tasbe import TasbeWorkflowOp, TasbeWorkflowView
 

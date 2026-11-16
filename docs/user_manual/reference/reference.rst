@@ -82,6 +82,12 @@ Preprocessing
 		:link: operations/compensation
 		:link-type: doc
 	
+	.. grid-item-card:: AutoSpill Compensation
+		:class-card: gallery-card
+		:img-top: operations/images/autospill.svg
+		:link: operations/autospill
+		:link-type: doc
+	
 	.. grid-item-card:: FlowClean
 		:img-top: /operations/flowclean-1.png
 		:link: operations/flowclean

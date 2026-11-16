@@ -1,5 +1,9 @@
 ## Unreleased
 
+- New **AutoSpill Compensation** operation (`AutoSpillOp`): compute the
+  spillover matrix from single-color controls without gating positive and
+  negative populations (robust regression + iterative refinement; a Python
+  port of the AutoSpill R package, Roca et al. 2021), then compensate.
 - "Magnetic" gates: polygon, freehand and ellipse gates can be adjusted per
   sample (`adjust_by`, "Adjust Per" in the GUI) -- the gate shifts to follow
   the population in each tube / well, up to `max_adjust` of its size.
