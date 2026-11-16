@@ -41,6 +41,7 @@ from .quad import QuadOp
 # data-driven
 from .ratio import RatioOp
 from .scale_settings import ScaleSettingsOp
+from .derived import DerivedParameterOp
 from .density import DensityGateOp
 from .gaussian import GaussianMixtureOp
 from .kmeans import KMeansOp
@@ -69,4 +70,5 @@ from .binning import BinningOp
 from .flowclean import FlowCleanOp
 from .hierarchy import HierarchyOp
 from .category import CategoryOp
+from .boolean_gate import BooleanGateOp
 

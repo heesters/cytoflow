@@ -83,6 +83,7 @@ from .operations.color_translation import ColorTranslationOp
 # data-driven
 from .operations.ratio import RatioOp
 from .operations.scale_settings import ScaleSettingsOp
+from .operations.derived import DerivedParameterOp
 from .operations.density import DensityGateOp
 from .operations.gaussian import GaussianMixtureOp
 from .operations.kmeans import KMeansOp
@@ -104,6 +105,7 @@ from .operations.binning import BinningOp
 from .operations.flowclean import FlowCleanOp
 from .operations.hierarchy import HierarchyOp
 from .operations.category import CategoryOp
+from .operations.boolean_gate import BooleanGateOp
 
 # views
 from .views.histogram import HistogramView

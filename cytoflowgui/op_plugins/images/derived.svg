@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Derived parameter: a new channel computed as a function of other channels -->
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500" version="1.1" id="svg2">
+  <g id="layer1">
+    <text x="250" y="320" text-anchor="middle"
+          style="font-style:italic;font-weight:bold;font-size:230px;font-family:Sans;fill:#000000;stroke:none">f(x)</text>
+    <path d="M 60,420 H 440" style="fill:none;stroke:#0000ff;stroke-width:32;stroke-linecap:round" />
+  </g>
+</svg>

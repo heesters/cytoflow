@@ -42,6 +42,7 @@ from .freehand import FreehandPlugin
 from .quad import QuadPlugin
 from .hierarchy import HierarchyPlugin
 from .category import CategoryPlugin
+from .boolean_gate import BooleanGatePlugin
 
 # statistics and transformations
 from .channel_stat import ChannelStatisticPlugin
@@ -51,6 +52,7 @@ from .merge_stat import MergeStatisticsPlugin
 from .ratio import RatioPlugin
 from .scale_settings import ScaleSettingsPlugin
 from .stat_test import StatisticalTestPlugin
+from .derived import DerivedParameterPlugin
 
 # # data-driven
 from .binning import BinningPlugin

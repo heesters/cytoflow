@@ -24,6 +24,17 @@
   the plot shows group means +/- SEM with significance brackets. The
   **Table View** can now show statistics whose index levels aren't
   experimental conditions (eg the pairwise Tukey table).
+- New **Boolean Gate** operation (`BooleanGateOp`): combine existing gates
+  with `and` / `or` / `not` into a new gate, eg `CD4_pos and not Dead` or
+  `Y2_high and Quad == 'Quad_2'` (like FlowJo's Boolean gates and FCS
+  Express's combination gates). The GUI lists the gates you can use.
+- New **Derived Parameter** operation (`DerivedParameterOp`): make a new
+  channel from an arithmetic expression of other channels, eg
+  `FITC_A / PE_A` or `log10(B1_A + 1)`, with `+ - * / **` and `log`,
+  `log10`, `log2`, `exp`, `sqrt`, `abs`, `arcsinh`, `min`, `max` (like
+  FlowJo's Derive Parameters and FCS Express's Parameter Math). Events
+  where the result isn't finite (eg division by zero) are dropped, with a
+  warning. The GUI lists the channels you can use.
 - Fix `BleedthroughLinearOp.set_from_fcs` reading the FCS spillover matrix
   transposed (so it compensated with the wrong coefficients).
 - Undo / redo (Edit menu, Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z) for changes to

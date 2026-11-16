@@ -8,8 +8,7 @@ Below is a gallery of *Cytoflow*'s operations and views. Each header will take
 you to the corresponding manual page.
 
 Operations
-==========
-
+===
 Gates
 -----
 
@@ -58,6 +57,12 @@ Gates
 	.. grid-item-card:: Gate Categories
 		:img-top: operations/images/category.png
 		:link: operations/category
+		:link-type: doc
+
+	.. grid-item-card:: Boolean Gate
+		:class-card: gallery-card
+		:img-top: operations/images/boolean_gate.svg
+		:link: operations/boolean_gate
 		:link-type: doc
 
 	
@@ -207,6 +212,10 @@ Statistics and Transforms
 		:class-card: gallery-card
 		:img-top: operations/images/scale_settings.svg
 		:link: operations/scale_settings
+	.. grid-item-card:: Derived Parameter
+		:class-card: gallery-card
+		:img-top: operations/images/derived.svg
+		:link: operations/derived
 		:link-type: doc
 	
 	

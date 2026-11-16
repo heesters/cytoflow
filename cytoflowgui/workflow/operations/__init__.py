@@ -40,6 +40,7 @@ from .merge_stat import MergeStatisticsWorkflowOp
 from .ratio import RatioWorkflowOp
 from .scale_settings import ScaleSettingsWorkflowOp
 from .stat_test import StatisticalTestWorkflowOp, StatisticalTestWorkflowView
+from .derived import DerivedParameterWorkflowOp
 
 from .binning import BinningWorkflowOp, BinningWorkflowView
 from .gaussian_1d import GaussianMixture1DWorkflowOp, GaussianMixture1DWorkflowView
@@ -63,3 +64,4 @@ from .tasbe import TasbeWorkflowOp, TasbeWorkflowView
 
 from .hierarchy import HierarchyWorkflowOp, HierarchyGate
 from .category import CategoryWorkflowOp, CategoryOpSubset
+from .boolean_gate import BooleanGateWorkflowOp
