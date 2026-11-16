@@ -31,6 +31,13 @@
 - SVG / PDF export keeps text as editable text, and embeds large scatter /
   density layers as an image, so exported figures open quickly in
   Illustrator, Affinity Designer and Inkscape.
+- New **ellipse gate** (`EllipseOp`): drag out an ellipse, then drag its
+  handles to resize it, drag the inside to move it, or press **r** and drag
+  a corner handle to rotate it. The ellipse is defined on the scaled axes,
+  so it's still an ellipse on log / logicle plots.
+- New **freehand gate** (`FreehandOp`): drag a lasso around a population.
+  The path is simplified to at most 100 vertices and gates exactly like a
+  polygon gate.
 - Easier gate drawing, especially on a laptop trackpad (eg, macOS):
   - Polygon gates close with a double-click; Backspace/Delete removes the
     last vertex; Escape starts over.

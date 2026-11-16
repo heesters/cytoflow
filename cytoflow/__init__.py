@@ -69,6 +69,8 @@ from .operations.threshold import ThresholdOp
 from .operations.range import RangeOp
 from .operations.range2d import Range2DOp
 from .operations.polygon import PolygonOp
+from .operations.ellipse import EllipseOp
+from .operations.freehand import FreehandOp
 from .operations.quad import QuadOp
 
 # TASBE

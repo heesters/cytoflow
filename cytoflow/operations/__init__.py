@@ -34,6 +34,8 @@ from .threshold import ThresholdOp
 from .range import RangeOp
 from .range2d import Range2DOp
 from .polygon import PolygonOp
+from .ellipse import EllipseOp
+from .freehand import FreehandOp
 from .quad import QuadOp
 
 # data-driven

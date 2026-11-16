@@ -30,6 +30,8 @@ from .quad import QuadWorkflowOp, QuadSelectionView
 from .range import RangeWorkflowOp, RangeSelectionView
 from .range2d import Range2DWorkflowOp, Range2DSelectionView, Range2DPlotParams
 from .polygon import PolygonWorkflowOp, PolygonSelectionView, PolygonPlotParams
+from .ellipse import EllipseWorkflowOp, EllipseSelectionView, EllipsePlotParams
+from .freehand import FreehandWorkflowOp, FreehandSelectionView, FreehandPlotParams
 
 from .channel_stat import ChannelStatisticWorkflowOp
 from .multi_channel_stat import MultiChannelStatisticWorkflowOp, Function as MultiChannelStatisticFunction

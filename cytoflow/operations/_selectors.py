@@ -26,14 +26,17 @@ laptop trackpad (eg, a MacBook), where precise clicks are hard:
 
 - Polygons can be closed by double-clicking, and the last vertex can be
   removed with Backspace/Delete.
-- Range and rectangle selectors keep the existing gate (instead of
+- Range, rectangle and ellipse selectors keep the existing gate (instead of
   collapsing it to nothing) when the user accidentally clicks without
   dragging.
+- The freehand (lasso) selector ignores a stray click, and simplifies the
+  drawn path to a manageable number of vertices.
 """
 
 import numpy as np
 from matplotlib.widgets import (PolygonSelector, SpanSelector, 
-                                RectangleSelector, Cursor)
+                                RectangleSelector, EllipseSelector,
+                                LassoSelector, Cursor)
 
 
 class EasyPolygonSelector(PolygonSelector):
@@ -105,6 +108,8 @@ class _KeepOnClickMixin:
     def _press(self, event):
         self._extents_before_press = \
             self.extents if self._selection_completed else None
+        # rectangle and ellipse selectors can also be rotated
+        self._rotation_before_press = getattr(self, '_rotation', None)
         return super()._press(event)
 
     def _release(self, event):
@@ -112,6 +117,9 @@ class _KeepOnClickMixin:
         saved = getattr(self, '_extents_before_press', None)
         self._extents_before_press = None
         if saved is not None and not self._selection_completed:
+            rotation = getattr(self, '_rotation_before_press', None)
+            if rotation is not None:
+                self._rotation = rotation
             self.extents = saved
             self._selection_completed = True
             self.set_visible(True)
@@ -125,6 +133,155 @@ class EasySpanSelector(_KeepOnClickMixin, SpanSelector):
 
 class EasyRectangleSelector(_KeepOnClickMixin, RectangleSelector):
     """A `RectangleSelector` that keeps the existing box on a stray click."""
+
+
+class EasyEllipseSelector(_KeepOnClickMixin, EllipseSelector):
+    """
+    An `EllipseSelector` that keeps the existing ellipse on a stray click.
+    
+    With ``interactive = True``, drag the edge handles to change the
+    ellipse's width or height, drag the inside to move it, and press **r**
+    then drag a corner handle to rotate it (press **r** again to stop
+    rotating).
+    """
+    
+    def _onmove(self, event):
+        # matplotlib computes the rotation angle in data coordinates, so 
+        # unless the axes' data aspect ratio is 1 the ellipse doesn't follow
+        # the mouse.  compute it on the screen instead.
+        if ('rotate' in self._state 
+                and self._active_handle in self._corner_order):
+            press = self.ax.transData.transform((self._eventpress.xdata,
+                                                 self._eventpress.ydata))
+            center = self.ax.transData.transform(self.center)
+            angle = (np.arctan2(event.y - center[1], event.x - center[0]) -
+                     np.arctan2(press[1] - center[1], press[0] - center[0]))
+            self.rotation = np.rad2deg(self._rotation_on_press + angle)
+            return
+        
+        return super()._onmove(event)
+
+
+def simplify_path(xy, tolerance = 1.0, max_vertices = 100):
+    """
+    Simplify a path with the Ramer-Douglas-Peucker algorithm.
+    
+    Parameters
+    ----------
+    xy : array-like, shape (N, 2)
+        The path's vertices.
+        
+    tolerance : float
+        The maximum distance (in the same units as ``xy``) that the simplified
+        path may stray from the original path.  If the result still has more
+        than ``max_vertices`` vertices, the tolerance is increased until it
+        doesn't.
+        
+    max_vertices : int
+        The maximum number of vertices to return.
+        
+    Returns
+    -------
+    numpy.ndarray of int
+        The (sorted) indices of the vertices of ``xy`` to keep.
+    """
+    
+    xy = np.asarray(xy, dtype = float)
+    n = len(xy)
+    if n <= 2:
+        return np.arange(n)
+    
+    def rdp(tol):
+        keep = np.zeros(n, dtype = bool)
+        keep[0] = keep[-1] = True
+        stack = [(0, n - 1)]
+        while stack:
+            start, end = stack.pop()
+            if end - start < 2:
+                continue
+            seg = xy[end] - xy[start]
+            pts = xy[start + 1:end] - xy[start]
+            seg_len = np.hypot(*seg)
+            if seg_len == 0:
+                dist = np.hypot(pts[:, 0], pts[:, 1])
+            else:
+                dist = np.abs(seg[0] * pts[:, 1] - seg[1] * pts[:, 0]) / seg_len
+            i = int(np.argmax(dist))
+            if dist[i] > tol:
+                idx = start + 1 + i
+                keep[idx] = True
+                stack.append((start, idx))
+                stack.append((idx, end))
+        return np.flatnonzero(keep)
+    
+    tol = max(tolerance, 1e-12)
+    idx = rdp(tol)
+    while len(idx) > max_vertices:
+        tol *= 1.5
+        idx = rdp(tol)
+    return idx
+
+
+class EasyLassoSelector(LassoSelector):
+    """
+    A `matplotlib.widgets.LassoSelector` for drawing freehand gates.
+    
+    - The drawn path is simplified (in screen space) to at most 
+      ``max_vertices`` vertices before ``onselect`` is called.
+    - A stray click (or a very small scribble) is ignored, so it doesn't
+      erase the existing gate.
+      
+    Parameters
+    ----------
+    min_size : float (default = 5)
+        Paths whose bounding box is smaller than this (in pixels) in either
+        direction are ignored.
+        
+    tolerance : float (default = 1.0)
+        How far (in pixels) the simplified path may stray from the drawn one.
+        
+    max_vertices : int (default = 100)
+        The maximum number of vertices passed to ``onselect``.
+    """
+    
+    def __init__(self, ax, onselect = None, *, min_size = 5, tolerance = 1.0,
+                 max_vertices = 100, **kwargs):
+        self._user_onselect = onselect
+        self.min_size = min_size
+        self.tolerance = tolerance
+        self.max_vertices = max_vertices
+        super().__init__(ax, self._on_lasso, **kwargs)
+        
+    def _on_lasso(self, verts):
+        verts = np.asarray([v for v in verts if v is not None 
+                            and np.all(np.isfinite(v))], dtype = float)
+        if len(verts) < 3:
+            return
+        
+        px = self.ax.transData.transform(verts)
+        ok = np.all(np.isfinite(px), axis = 1)
+        verts, px = verts[ok], px[ok]
+        if len(verts) < 3:
+            return
+        
+        size = px.max(axis = 0) - px.min(axis = 0)
+        if size[0] < self.min_size or size[1] < self.min_size:
+            return  # a stray click -- leave the gate alone
+
+        idx = simplify_path(px, 
+                            tolerance = self.tolerance, 
+                            max_vertices = self.max_vertices)
+        verts = verts[idx]
+        
+        # drop the last point if it's on top of the first one; the polygon
+        # is closed implicitly
+        if len(verts) > 3 and np.allclose(px[idx[0]], px[idx[-1]]):
+            verts = verts[:-1]
+        if len(verts) < 3:
+            return
+        
+        if self._user_onselect is not None:
+            self._user_onselect([(float(x), float(y)) for x, y in verts])
 
 
 class GateLineDragger:

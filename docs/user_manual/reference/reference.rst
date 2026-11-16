@@ -40,6 +40,16 @@ Gates
 		:link: operations/polygon
 		:link-type: doc
 	
+	.. grid-item-card:: Ellipse Gate
+		:img-top: /operations/ellipse-1.png
+		:link: operations/ellipse
+		:link-type: doc
+	
+	.. grid-item-card:: Freehand Gate
+		:img-top: /operations/freehand-1.png
+		:link: operations/freehand
+		:link-type: doc
+	
 	.. grid-item-card:: Gate Hierarchy
 		:img-top: operations/images/hierarchy.png
 		:link: operations/hierarchy
