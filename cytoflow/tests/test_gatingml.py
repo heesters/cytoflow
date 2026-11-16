@@ -982,5 +982,56 @@ class TestImportFlowJo(GateTest):
                 self.assertSameEvents(theirs, ours, name)
 
 
+class TestStainNamedChannels(unittest.TestCase):
+    """
+    FlowJo and Gating-ML name channels by $PnN (the detector, eg "FL9-A"),
+    but cytoflow may name them by $PnS (the stain, eg "CFSE B525-A").  Gates
+    have to find their channels either way.
+    """
+    
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        rng = np.random.default_rng(0)
+        pnn = ["FSC-A", "FL9-A", "FL12-A"]
+        pns = ["FSC-A", "CFSE B525-A", "PE Y585-A"]
+        data = np.column_stack([rng.uniform(0, 1e6, 5000),
+                                10 ** rng.uniform(1, 6, 5000),
+                                10 ** rng.uniform(1, 6, 5000)])
+        self.fcs = os.path.join(self.tmp, "stain.fcs")
+        util.write_fcs(self.fcs, pnn, {c : 16777216.0 for c in pnn}, data,
+                       compat_chn_names = False, compat_negative = False,
+                       **{"$P{}S".format(i + 1) : s for i, s in enumerate(pns)})
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.ex = flow.ImportOp(tubes = [flow.Tube(file = self.fcs)]).apply()
+        self.assertEqual(self.ex.metadata["name_metadata"], "$PnS")
+        self.assertIn("CFSE B525-A", self.ex.channels)
+        
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors = True)
+        
+    def testRoundTrip(self):
+        op = flow.Range2DOp(name = "R", xchannel = "CFSE B525-A", ychannel = "PE Y585-A",
+                            xlow = 100, xhigh = 10000, ylow = 50, yhigh = 5000)
+        path = os.path.join(self.tmp, "gates.xml")
+        flow.export_gatingml([op], self.ex, path)
+        
+        # the file uses the detector names
+        with open(path) as f:
+            text = f.read()
+        self.assertIn('"FL9-A"', text)
+        self.assertIn('"FL12-A"', text)
+        self.assertNotIn('CFSE', text)
+        
+        with warnings.catch_warnings(record = True) as w:
+            warnings.simplefilter('always')
+            ops = flow.import_gatingml(path, self.ex)
+        self.assertFalse([x for x in w if "not imported" in str(x.message)])
+        self.assertEqual(len(ops), 1)
+        self.assertEqual((ops[0].xchannel, ops[0].ychannel), ("CFSE B525-A", "PE Y585-A"))
+        np.testing.assert_array_equal(ops[0].apply(self.ex)[ops[0].name].values,
+                                      op.apply(self.ex)["R"].values)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -432,7 +432,12 @@ class _Exporter(object):
     def fcs_name(experiment, channel):
         if channel not in experiment.channels:
             raise _Skip("channel '{}' isn't in the experiment".format(channel))
-        return experiment.metadata.get(channel, {}).get('fcs_name', channel)
+        md = experiment.metadata.get(channel, {})
+        # Gating-ML names dimensions by $PnN.  if cytoflow named the channels
+        # by $PnS, the $PnN name is the channel's 'marker'.
+        if experiment.metadata.get('name_metadata', None) == "$PnS" and md.get('marker'):
+            return md['marker']
+        return md.get('fcs_name', channel)
 
     @staticmethod
     def dimension(parent, fcs_name, tid = None, lo = None, hi = None, tag = 'dimension',
@@ -907,6 +912,15 @@ def _find_channel(experiment, fcs_name):
             return channel
     if fcs_name in experiment.channels:
         return fcs_name
+    
+    # an FCS file has two names for each channel: the detector ($PnN, eg
+    # "FL9-A") and the stain ($PnS, eg "CD4 FITC").  cytoflow names its 
+    # channels after one of them, and keeps the other as the 'marker' -- but
+    # FlowJo and Gating-ML files use $PnN.  so, try the other name as well.
+    matches = [channel for channel in experiment.channels
+               if experiment.metadata.get(channel, {}).get('marker', None) == fcs_name]
+    if len(matches) == 1:
+        return matches[0]
     raise _Skip("the experiment doesn't have a channel '{}'".format(fcs_name))
 
 
