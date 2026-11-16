@@ -8,7 +8,8 @@ Below is a gallery of *Cytoflow*'s operations and views. Each header will take
 you to the corresponding manual page.
 
 Operations
-===
+==========
+
 Gates
 -----
 

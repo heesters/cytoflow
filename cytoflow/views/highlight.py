@@ -55,12 +55,18 @@ def highlight_mask(experiment, highlight):
                                          .format(highlight, col.iloc[0]))
         return col
     
+    # the same (safe, hand-evaluated) expressions as BooleanGateOp.  imported
+    # here because cytoflow.operations imports cytoflow.views.
+    from cytoflow.operations.boolean_gate import evaluate_boolean_expression
+    
     try:
-        mask = experiment.data.eval(highlight)
-    except Exception as e:
+        mask = evaluate_boolean_expression(highlight, experiment)
+    except util.CytoflowOpError as e:
         raise util.CytoflowViewError('highlight',
                                      "Couldn't evaluate highlight expression '{}': {}"
-                                     .format(highlight, e)) from e
+                                     .format(highlight, e.args[-1])) from e
+        
+    mask = pd.Series(np.asarray(mask), index = experiment.data.index)
         
     if not isinstance(mask, pd.Series) or not pd.api.types.is_bool_dtype(mask):
         raise util.CytoflowViewError('highlight',
