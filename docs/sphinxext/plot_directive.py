@@ -622,7 +622,7 @@ def render_figures(code, code_path, output_dir, output_base, context,
         if out_of_date(code_path, img.filename(fmt)):
             all_exists = False
             break
-        img.formats.append(format)
+        img.formats.append(fmt)
 
     if all_exists:
         return [(code, [img])]
