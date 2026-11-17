@@ -135,18 +135,18 @@ jobs:
     - name: Check the app bundle
       run: |
         ls dist/
-        test -d dist/Cytoflow.app
-        codesign --verify --deep --verbose=2 dist/Cytoflow.app || echo "::warning::codesign verification failed"
+        test -d dist/Cytoflow-GCB.app
+        codesign --verify --deep --verbose=2 dist/Cytoflow-GCB.app || echo "::warning::codesign verification failed"
 
     - name: Zip the app
       id: zip_app
       run: |
         cd dist/
-        mv Cytoflow.app "Cytoflow-${VERSION}.app"
+        mv Cytoflow-GCB.app "Cytoflow-GCB-${VERSION}.app"
         # ditto keeps the symlinks and permissions inside the bundle intact
-        ditto -c -k --sequesterRsrc --keepParent "Cytoflow-${VERSION}.app" "cytoflow-gui-${VERSION}-macos_${{ matrix.arch }}.zip"
-        rm -rf "Cytoflow-${VERSION}.app" cytoflow
-        echo "GUI_FILE=cytoflow-gui-${VERSION}-macos_${{ matrix.arch }}.zip" >> $GITHUB_OUTPUT
+        ditto -c -k --sequesterRsrc --keepParent "Cytoflow-GCB-${VERSION}.app" "cytoflow-gcb-gui-${VERSION}-macos_${{ matrix.arch }}.zip"
+        rm -rf "Cytoflow-GCB-${VERSION}.app" cytoflow
+        echo "GUI_FILE=cytoflow-gcb-gui-${VERSION}-macos_${{ matrix.arch }}.zip" >> $GITHUB_OUTPUT
         ls -l
 
     - name: Save the app as an artifact
@@ -238,8 +238,8 @@ jobs:
       id: zip_app
       run: |
         cd dist
-        mv cytoflow-installer.exe "cytoflow-gui-${VERSION}-win_x86-64.exe"
-        echo "GUI_FILE=cytoflow-gui-${VERSION}-win_x86-64.exe" >> $GITHUB_OUTPUT
+        mv cytoflow-installer.exe "cytoflow-gcb-gui-${VERSION}-win_x86-64.exe"
+        echo "GUI_FILE=cytoflow-gcb-gui-${VERSION}-win_x86-64.exe" >> $GITHUB_OUTPUT
         rm -rf cytoflow
         ls -l
 

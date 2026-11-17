@@ -1,6 +1,6 @@
 # script defs
 
-!define APP_NAME "Cytoflow"
+!define APP_NAME "Cytoflow-GCB"
 !define INSTDIR_REG_ROOT "HKCU"
 !define INSTDIR_REG_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 !define DESCRIPTION "Better quantitative flow cytometry"
@@ -64,7 +64,7 @@ Section "Main Application" sec01
 	!insertmacro UNINSTALL.LOG_CLOSE_INSTALL
  
 	CreateDirectory '$SMPROGRAMS\${APP_NAME}'
-        CreateShortcut '$SMPROGRAMS\${APP_NAME}\Cytoflow.lnk' '$INSTDIR\cytoflow.exe'
+        CreateShortcut '$SMPROGRAMS\${APP_NAME}\Cytoflow-GCB.lnk' '$INSTDIR\cytoflow.exe'
         CreateShortcut '$SMPROGRAMS\${APP_NAME}\Uninstall.lnk' '${UNINST_EXE}'
 
 
@@ -107,7 +107,7 @@ Section UnInstall
 	!insertmacro UNINSTALL.LOG_END_UNINSTALL
 
 
-        Delete "$SMPROGRAMS\${APP_NAME}\Cytoflow.lnk"
+        Delete "$SMPROGRAMS\${APP_NAME}\Cytoflow-GCB.lnk"
         Delete "$SMPROGRAMS\${APP_NAME}\Uninstall.lnk"
         RmDir "$SMPROGRAMS\${APP_NAME}"
  

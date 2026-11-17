@@ -63,7 +63,7 @@ class CytoflowApplication(TasksApplication):
     id = 'cytoflow'
     """The application's GUID"""
 
-    name = 'Cytoflow'
+    name = 'Cytoflow-GCB'
     """The application's user-visible name."""
 
     # Override two traits from TasksApplication so we can provide defaults, below

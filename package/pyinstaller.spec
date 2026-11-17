@@ -123,14 +123,14 @@ if sys.platform == 'darwin':
        _version = "0.0.0"
 
    app = BUNDLE(coll,
-                name = "Cytoflow.app",
+                name = "Cytoflow-GCB.app",
                 icon = "icon.icns",
                 # a stable identifier, so macOS keeps the app's preferences
                 # and permissions between versions
                 bundle_identifier = "io.github.cytoflow.Cytoflow",
                 version = _version,
                 info_plist = {'NSHighResolutionCapable' : True,
-                              'CFBundleDisplayName' : 'Cytoflow',
+                              'CFBundleDisplayName' : 'Cytoflow-GCB',
                               'NSHumanReadableCopyright' : 'GPL-2.0-or-later'})
 
 

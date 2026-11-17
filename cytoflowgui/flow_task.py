@@ -213,8 +213,6 @@ class FlowTask(Task):
                               id = 'View', name = '&View'),
                         SMenu(TaskAction(name = 'Online documentation...',
                                          method = 'on_docs'),
-                                         TaskAction(name = 'Report a problem....',
-                                         method = 'on_problem'),
                               TaskAction(name='About...',
                                          method='on_about'),
                               id="Help", name ="&Help"))
@@ -240,10 +238,6 @@ class FlowTask(Task):
                                               name='Notebook',
                                               tooltip="Export to an Jupyter notebook...",
                                               image=ImageResource('jupyter')),
-                                  TaskAction(method = 'on_problem',
-                                             name = "Report a bug...",
-                                             tooltib = "Report a bug",
-                                             image = ImageResource('bug')),
                                   PreferencesAction(image = ImageResource('prefs'))),
                            SGroup(TaskAction(method = 'on_toggle_workflow',
                                              name = 'Workflow',
@@ -780,40 +774,6 @@ class FlowTask(Task):
         webbrowser.open_new_tab("https://cytoflow.readthedocs.io/en/stable/user_manual/user_manual.html")
 
     
-    def on_problem(self):
-        """
-        Event handler for the bug report button & menu item.
-        Saves the in-memory log to disk, then opens a webbrowser to the 
-        new issue page on GitHub.
-        """
-
-        log = str(self._get_package_versions()) + "\n" + self.application.application_log.getvalue()
-        
-        msg = "The best way to report a problem is send an application log to " \
-              "the developers.  If you click 'Yes' below, you will be given then " \
-              "opportunity to save the log to a file and then file a " \
-              "new issue on GitHub at " \
-              "https://github.com/cytoflow/cytoflow/issues/new" 
-        
-        dialog = ConfirmationDialog(message = msg,
-                                    informative = "Would you like to report an issue to the developers?")
-                
-        if dialog.open() == YES:
-            dialog = DefaultFileDialog(parent = self.window.control,
-                                       action = 'save as', 
-                                       default_suffix = "log",
-                                       wildcard = (FileDialog.create_wildcard("Log files", "*.log") + ';' + #@UndefinedVariable  
-                                                   FileDialog.create_wildcard("All files", "*")))                    #@UndefinedVariable  
-            
-            if dialog.open() == OK:
-                with open(dialog.path, 'w') as f:
-                    f.write(log)
-                  
-                webbrowser.open_new_tab("https://github.com/cytoflow/cytoflow/issues/new")
-                  
-            return
-        
-        
     def on_toggle_workflow(self):
         """Toggle the visibility of the workflow pane"""
         self.workflow_pane.visible = not self.workflow_pane.visible

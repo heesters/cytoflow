@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Rename app to **Cytoflow-GCB**; remove the "Report a bug" toolbar button
+  and Help menu item.
 - Fix sphinx help build: `plot_directive.py` appended Python's built-in
   `format` function instead of the format string to `img.formats`.
 - **Export report (PDF / PowerPoint)** in the File menu: put several of the
