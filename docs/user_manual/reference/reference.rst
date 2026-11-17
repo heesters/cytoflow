@@ -55,6 +55,12 @@ Gates
 		:link: operations/hierarchy
 		:link-type: doc
 	
+	.. grid-item-card:: Population Tree
+		:class-card: gallery-card
+		:img-top: operations/images/population_tree.svg
+		:link: operations/population_tree
+		:link-type: doc
+	
 	.. grid-item-card:: Gate Categories
 		:img-top: operations/images/category.png
 		:link: operations/category

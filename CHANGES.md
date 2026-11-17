@@ -1,5 +1,9 @@
 ## Unreleased
 
+- New **Population Tree** operation (`PopulationTreeOp`): nested populations
+  with counts, % of parent and % of total, as a statistic and a tree plot.
+  "Build from workflow" infers each gate's parent from imported FlowJo
+  hierarchies or from the subset the gate was drawn on.
 - Fix a crash-prone race: deleting the selected operation while its plot was
   still being drawn cleared the figure underneath the plot ("Axes has not
   been added yet").

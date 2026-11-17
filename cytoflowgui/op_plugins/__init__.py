@@ -62,6 +62,7 @@ from .density import DensityGatePlugin
 from .flowpeaks import FlowPeaksPlugin
 from .kmeans import KMeansPlugin
 from .phenograph import PhenographPlugin
+from .population_tree import PopulationTreePlugin
 from .pca import PCAPlugin
 from .flowclean import FlowCleanPlugin
 from .tsne import tSNEPlugin

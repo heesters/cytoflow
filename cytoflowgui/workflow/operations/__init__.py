@@ -63,6 +63,7 @@ from .compensation import CompensationWorkflowOp, CompensationWorkflowView, Spil
 from .autospill import AutoSpillWorkflowOp
 from .cross_entropy import CrossEntropyTestWorkflowOp, CrossEntropyTestWorkflowView
 from .phenograph import PhenographWorkflowOp, PhenographWorkflowView
+from .population_tree import PopulationTreeWorkflowOp, PopulationTreeWorkflowView, Population as PopulationTreePopulation, populations_from_workflow
 from .color_translation import ColorTranslationWorkflowOp, ColorTranslationWorkflowView, Control as ColorTranslationControl
 from .tasbe import TasbeWorkflowOp, TasbeWorkflowView
 
