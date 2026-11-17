@@ -96,13 +96,14 @@ from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
 
 from ..editors import InstanceHandlerEditor, VerticalListEditor, SubsetListEditor
-from ..workflow.operations import (AutoSpillWorkflowOp, CompensationWorkflowView, 
-                                   BleedthroughChannel)
+from ..workflow.operations import (AutoSpillWorkflowOp, CompensationWorkflowView,
+                                   BleedthroughChannel, AutoSpillQCWorkflowView)
 from ..subset_controllers import subset_handler_factory
 
 from .i_op_plugin import IOperationPlugin, OP_PLUGIN_EXT
 from .op_plugin_base import OpHandler, shared_op_traits_view, PluginHelpMixin
 from .compensation import CompensationViewHandler
+from ..view_plugins import ViewHandler
 
 
 class AutoSpillChannelHandler(Controller):
@@ -196,6 +197,22 @@ class AutoSpillHandler(OpHandler):
             return []
 
 
+class AutoSpillQCViewHandler(ViewHandler):
+    view_traits_view = View(
+        Item('context.view_warning',
+             resizable = True,
+             visible_when = 'context.view_warning',
+             editor = ColorTextEditor(foreground_color = "#000000",
+                                     background_color = "#ffff99")),
+        Item('context.view_error',
+             resizable = True,
+             visible_when = 'context.view_error',
+             editor = ColorTextEditor(foreground_color = "#000000",
+                                      background_color = "#ff9191")))
+
+    view_params_view = View()
+
+
 @provides(IOperationPlugin)
 class AutoSpillPlugin(Plugin, PluginHelpMixin):
 
@@ -215,6 +232,8 @@ class AutoSpillPlugin(Plugin, PluginHelpMixin):
             return AutoSpillHandler(model = model, context = context)
         elif isinstance(model, CompensationWorkflowView):
             return CompensationViewHandler(model = model, context = context)
+        elif isinstance(model, AutoSpillQCWorkflowView):
+            return AutoSpillQCViewHandler(model = model, context = context)
 
     def get_icon(self):
         return ImageResource('autospill')

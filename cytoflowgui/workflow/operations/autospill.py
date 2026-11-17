@@ -27,7 +27,7 @@ import warnings
 
 from traits.api import provides, Str, observe, List, Property, Float, Int
 
-from cytoflow.operations.autospill import AutoSpillOp
+from cytoflow.operations.autospill import AutoSpillOp, AutoSpillQCView
 import cytoflow.utility as util
 
 from .. import Changed
@@ -132,6 +132,20 @@ class AutoSpillWorkflowOp(CompensationWorkflowOp, AutoSpillOp):
                 subset = ", subset = " + repr(self.subset) if self.subset else "",
                 spillover = repr({k : dict(v) for k, v in self.spillover.items()})))
         
+
+class AutoSpillQCWorkflowView(AutoSpillQCView):
+    """GUI wrapper around AutoSpillQCView."""
+    id = 'cytoflow.views.autospill_qc'
+    friendly_id = 'AutoSpill QC'
+
+    def plot(self, experiment, **kwargs):
+        super().plot(experiment, **kwargs)
+
+    def get_notebook_code(self, idx):
+        return dedent("""
+        op_{prev}.default_view(qc=True).plot(None)
+        """.format(prev=idx - 1))
+
 
 @camel_registry.dumper(AutoSpillWorkflowOp, 'autospill', version = 1)
 def _dump(op):

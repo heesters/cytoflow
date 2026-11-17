@@ -569,11 +569,15 @@ class AutoSpillOp(CompensationOp):
     def default_view(self, **kwargs):
         """
         Returns a diagnostic view.  By default, a heat map of the spillover
-        matrix; pass ``convergence = True`` for a plot of the algorithm's
-        convergence instead.
+        matrix; pass ``convergence = True`` for the convergence plot or
+        ``qc = True`` for the before/after QC heatmaps.
         """
         if kwargs.pop('convergence', False):
             v = AutoSpillConvergenceView(op = self)
+            v.trait_set(**kwargs)
+            return v
+        if kwargs.pop('qc', False):
+            v = AutoSpillQCView(op = self)
             v.trait_set(**kwargs)
             return v
         return super().default_view(**kwargs)
@@ -621,6 +625,91 @@ class AutoSpillConvergenceView(HasStrictTraits):
         ax.legend()
         if kwargs.get('title'):
             ax.set_title(kwargs['title'])
+
+
+@provides(cytoflow.views.IView)
+class AutoSpillQCView(HasStrictTraits):
+    """
+    Shows before-and-after QC heatmaps for the AutoSpill compensation.
+
+    The left panel shows the computed spillover matrix (how much of channel
+    *i*'s signal bleeds into detector *j*); the right panel shows the residual
+    slope error after compensation (ideally all zeros).  Any cell above 1%
+    spillover is annotated with its value.
+
+    Attributes
+    ----------
+    op : Instance(AutoSpillOp)
+        The operation whose QC to display.
+    """
+
+    id = Constant('cytoflow.views.autospill_qc')
+    friendly_id = Constant("AutoSpill QC")
+
+    op = Instance(AutoSpillOp)
+
+    def plot(self, experiment=None, **kwargs):
+        """
+        Plot the spillover matrix and slope-error heatmaps side-by-side.
+        ``experiment`` isn't used.
+        """
+        import seaborn as sns
+
+        if self.op is None:
+            raise util.CytoflowViewError('op', "No operation specified")
+
+        if not self.op.spillover:
+            raise util.CytoflowViewError('op',
+                                         "Spillover matrix isn't available. "
+                                         "Did you forget to call estimate()?")
+
+        channels = list(self.op.spillover.keys()) \
+            if isinstance(self.op.spillover, dict) else list(self.op.spillover.index)
+
+        import pandas as pd
+        if isinstance(self.op.spillover, dict):
+            spill_df = pd.DataFrame(self.op.spillover)
+        else:
+            spill_df = pd.DataFrame(self.op.spillover)
+
+        # off-diagonal only (diagonal is always 1 by construction)
+        spill_pct = (spill_df * 100.0).round(2)
+        np.fill_diagonal(spill_pct.values, np.nan)
+
+        fig, axes = plt.subplots(1, 2, figsize=(max(8, len(channels) * 1.2),
+                                                 max(4, len(channels) * 0.9)))
+
+        # Spillover matrix
+        ax = axes[0]
+        mask = np.isnan(spill_pct.values)
+        sns.heatmap(spill_pct.fillna(0),
+                    ax=ax, annot=True, fmt='.1f',
+                    cmap='YlOrRd', mask=mask,
+                    linewidths=0.5, linecolor='white',
+                    vmin=0, vmax=max(10, spill_pct.fillna(0).values.max()))
+        ax.set_title("Spillover matrix (%)")
+        ax.set_xlabel("Detector (leaks into)")
+        ax.set_ylabel("Channel (control)")
+
+        # Slope-error heatmap
+        ax2 = axes[1]
+        if self.op._slope_error is not None:
+            err_pct = (self.op._slope_error * 100.0).round(2)
+            np.fill_diagonal(err_pct.values, np.nan)
+            sns.heatmap(err_pct.fillna(0),
+                        ax=ax2, annot=True, fmt='.2f',
+                        cmap='coolwarm', center=0,
+                        linewidths=0.5, linecolor='white')
+            ax2.set_title("Residual slope error after compensation (%)")
+        else:
+            ax2.set_title("Residual slope error (not available)")
+        ax2.set_xlabel("Detector")
+        ax2.set_ylabel("Channel")
+
+        plt.tight_layout()
+
+        if kwargs.get('title'):
+            fig.suptitle(kwargs['title'], y=1.02)
 
 
 util.expand_class_attributes(AutoSpillOp)

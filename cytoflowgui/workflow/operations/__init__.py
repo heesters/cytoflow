@@ -60,7 +60,7 @@ from .autofluorescence import AutofluorescenceWorkflowOp, AutofluorescenceWorkfl
 from .bead_calibration import BeadCalibrationWorkflowOp, BeadCalibrationWorkflowView, Unit as BeadCalibrationUnit
 from .bleedthrough_linear import BleedthroughLinearWorkflowOp, BleedthroughLinearWorkflowView, Channel as BleedthroughChannel, Spillover as BleedthroughSpillover
 from .compensation import CompensationWorkflowOp, CompensationWorkflowView, Spillover as CompensationSpillover
-from .autospill import AutoSpillWorkflowOp
+from .autospill import AutoSpillWorkflowOp, AutoSpillQCWorkflowView
 from .cross_entropy import CrossEntropyTestWorkflowOp, CrossEntropyTestWorkflowView
 from .phenograph import PhenographWorkflowOp, PhenographWorkflowView
 from .population_tree import PopulationTreeWorkflowOp, PopulationTreeWorkflowView, Population as PopulationTreePopulation, populations_from_workflow
