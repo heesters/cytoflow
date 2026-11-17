@@ -162,6 +162,13 @@ class Msg(object):
     
     CHANGE_CURRENT_VIEW = "CHANGE_CURRENT_VIEW"
     
+    # export several plots as a report (PDF or PowerPoint).  payload:
+    # - a list of (WorkflowItem index, view id, caption)
+    # - the file name
+    # - a dict of options for cytoflow.utility.report.export_report
+    # the reply's payload is (succeeded, message)
+    EXPORT_REPORT = "EXPORT_REPORT"
+    
     # send an update to a WorkflowItem.  payload:
     # - the WorkflowItem index
     # - the name of the updated trait
@@ -266,6 +273,10 @@ class LocalWorkflow(HasStrictTraits):
     # execute an expression in the remote process.  useful for debugging.
     exec_event = Instance(threading.Event, ())
     
+    # the outcome of the last report export: (succeeded, message)
+    report_event = Instance(threading.Event, ())
+    report_result = Any
+    
     def __init__(self, remote_workflow_connection, **kwargs):
         super(LocalWorkflow, self).__init__(**kwargs)  
                 
@@ -340,6 +351,10 @@ class LocalWorkflow(HasStrictTraits):
                     
                 elif msg == Msg.EXEC:
                     self.exec_event.set()
+                    
+                elif msg == Msg.EXPORT_REPORT:
+                    self.report_result = payload
+                    self.report_event.set()
                     
                 elif msg == Msg.SHUTDOWN:
                     self.message_q.put(None)
@@ -494,6 +509,29 @@ class LocalWorkflow(HasStrictTraits):
         idx = self.workflow.index(event.object)
         view = event.object.current_view
         self.message_q.put((Msg.CHANGE_CURRENT_VIEW, (idx, view)))      
+        
+    def export_report(self, plots, filename, **options):
+        """
+        Ask the remote process to export a report.  Returns immediately; 
+        `report_result` is set to ``(succeeded, message)`` (and 
+        `report_event` is set) when it's done.
+        
+        Parameters
+        ----------
+        plots : list of (WorkflowItem, IWorkflowView, str)
+            The plots to export, with a caption for each.
+            
+        filename : str
+            The ``.pdf`` or ``.pptx`` file to write.
+            
+        options
+            ``title``, ``layout``, ``page_size`` and ``dpi``; see 
+            `cytoflow.utility.report.export_report`
+        """
+        payload = ([(self.workflow.index(wi), view.id, caption) for wi, view, caption in plots],
+                   filename, options)
+        self.report_event.clear()
+        self.message_q.put((Msg.EXPORT_REPORT, payload))
         
     def remote_eval(self, expr):
         """
@@ -781,6 +819,9 @@ class RemoteWorkflow(HasStrictTraits):
                     # exit the receiving thread
                     return
                     
+                elif msg == Msg.EXPORT_REPORT:
+                    self.exec_q.put((sys.maxsize - 2, (None, lambda self = self, payload = payload: self.export_report(*payload))))
+                    
                 elif msg == Msg.EXEC:
                     self.exec_q.put((sys.maxsize - 1, (None, lambda self = self, q = self.message_q, expr = payload: q.put((Msg.EXEC, exec(expr))))))
                                              
@@ -810,6 +851,69 @@ class RemoteWorkflow(HasStrictTraits):
         except Exception:
             log_exception()
             
+    def export_report(self, plots, filename, options):
+        """
+        Render the requested plots off-screen (with the same parameters as
+        on the screen) and write the report.  Runs on the main thread.
+        """
+        from cytoflow.utility.report import export_report, ReportItem
+        from cytoflow.utility import CytoflowError
+        from cytoflowgui.matplotlib_backend_remote import offscreen_figures
+        
+        canvas = None
+        try:
+            canvas = plt.gcf().canvas
+            canvas.set_working(True)
+        except AttributeError:
+            canvas = None
+            
+        try:
+            items = []
+            skipped = []
+            for idx, view_id, caption in plots:
+                wi = self.workflow[idx]
+                view = next((v for v in wi.views if v.id == view_id), None)
+                if view is None or wi.result is None:
+                    skipped.append("{}: there is nothing to plot (is the operation valid?)"
+                                   .format(caption))
+                    continue
+                plot_params = {k : v for k, v in view.plot_params.trait_get().items()
+                               if not (isinstance(v, str) and not v)} \
+                              if getattr(view, 'plot_params', None) is not None else {}
+                items.append(ReportItem(view, wi.result, caption, plot_params))
+                
+            if not items:
+                raise CytoflowError("None of the chosen plots can be made:\n" + "\n".join(skipped))
+            
+            lock = self.plot_lock if self.plot_lock is not None else threading.Lock()
+            with lock, offscreen_figures():
+                problems = export_report(items, filename, **options)
+                
+            problems = skipped + problems
+            message = "Saved {} plot{} to {}".format(len(items) - len(problems) + len(skipped), 
+                                                     "" if len(items) == 1 else "s", filename)
+            if problems:
+                message += "\n\nThese plots could not be made:\n" + "\n".join(problems)
+            self.message_q.put((Msg.EXPORT_REPORT, (True, message)))
+            
+        except Exception as e:
+            logger.debug("RemoteWorkflow.export_report failed", exc_info = True)
+            self.message_q.put((Msg.EXPORT_REPORT, (False, str(e.args[-1]) if e.args else str(e))))
+            
+        finally:
+            if canvas is not None:
+                try:
+                    canvas.set_working(False)
+                except AttributeError:
+                    pass
+                
+            # the views were plotted off-screen; re-plot the one on the screen
+            # so that it is interactive again
+            if self.selected is not None and self.selected.current_view is not None \
+               and self.selected in self.workflow:
+                idx = self.workflow.index(self.selected)
+                self.exec_q.put((idx + 0.1, (self.selected, self.selected.plot)))
+        
     def shutdown(self):
         """Shut down the remote process"""
         # make sure the receiving thread is shut down

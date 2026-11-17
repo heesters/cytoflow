@@ -19,6 +19,7 @@ dependencies:
     - numba=0.61
     - opentsne=1.0.4
     - umap-learn=0.5
+    - python-pptx=1.0
     - igraph=0.10
     - python-igraph=0.11
     - scikit-fda=0.10

@@ -44,6 +44,7 @@ from .custom_traits import (PositiveInt, PositiveCInt, PositiveFloat,
 from .docstring import expand_class_attributes, expand_method_parameters
 
 from .fcswrite import write_fcs
+from .report import export_report, render_view, ReportItem
 
 from .minisom import MiniSom
 from .consensus import ConsensusClustering

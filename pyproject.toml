@@ -37,6 +37,7 @@ dependencies = [
     'numba',
     'opentsne',
     'umap-learn',
+    'python-pptx',
     'igraph==0.11.*',
     'python-igraph==0.11.*',
     'scikit-fda',

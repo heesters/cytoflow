@@ -67,6 +67,7 @@ from .workflow_controller import WorkflowController
 from .util import DefaultFileDialog
 from .workflow.serialization import save_yaml, load_yaml
 from .gate_interchange import import_gates, export_gates, is_flowjo_workspace
+from .report_export import list_plots, ReportDialogModel
 
 import cytoflow.utility as util
 from cytoflow.operations.gatingml import flowjo_workspace_samples
@@ -194,6 +195,9 @@ class FlowTask(Task):
                                          method='on_import_gates'),
                               TaskAction(name='Export gates (Gating-ML)...',
                                          method='on_export_gates'),
+                              TaskAction(name='Export report (PDF / PowerPoint)...',
+                                         method='on_export_report',
+                                         accelerator='Ctrl+Shift+R'),
                               PreferencesAction(),
                               id='File', name='&File'),
                         SMenu(TaskAction(name='Undo',
@@ -706,6 +710,58 @@ class FlowTask(Task):
             warning(None, msg + "\n\n" + "\n\n".join(warns))
         else:
             information(None, msg)
+
+    
+    def on_export_report(self):
+        """
+        Shows a dialog to export several of the workflow's plots as one 
+        report: a PDF, or a PowerPoint presentation.
+        """
+        
+        plots = list_plots(self.model.workflow)
+        if not plots:
+            information(None, "There are no plots to export yet. Add a view (or "
+                              "select an operation with a plot) first.")
+            return
+        
+        labels = [label for _, _, label in plots]
+        model = ReportDialogModel(labels = labels, selected = list(labels))
+        if not model.edit_traits(kind = 'livemodal').result:
+            return
+        
+        chosen = [(wi, view, label.split(": ", 1)[-1]) 
+                  for wi, view, label in plots if label in model.selected]
+        if not chosen:
+            information(None, "No plots were chosen.")
+            return
+        
+        dialog = DefaultFileDialog(parent = self.window.control,
+                                   action = 'save as',
+                                   default_suffix = "pdf",
+                                   wildcard = (FileDialog.create_wildcard("PDF", "*.pdf") + ';' + #@UndefinedVariable  
+                                               FileDialog.create_wildcard("PowerPoint", "*.pptx")))  # @UndefinedVariable
+        if dialog.open() != OK:
+            return
+        
+        path = dialog.path
+        if not path.lower().endswith((".pdf", ".pptx")):
+            path += ".pptx" if dialog.wildcard_index == 1 else ".pdf"
+            
+        # the report is made in the background; _on_report_result shows the
+        # outcome when it's done
+        self.model.export_report(chosen, path, **model.options(path))
+        
+    @observe('model:report_result', dispatch = 'ui')
+    def _on_report_result(self, event):
+        if not event.new:
+            return
+        succeeded, message = event.new
+        if not succeeded:
+            error(None, "Couldn't export the report:\n\n{}".format(message))
+        elif "could not be made" in message:
+            warning(None, message)
+        else:
+            information(None, message)
 
     
     def on_prefs(self):

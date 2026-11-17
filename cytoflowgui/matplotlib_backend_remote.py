@@ -529,6 +529,27 @@ class FigureCanvasAggRemote(FigureCanvasAgg):
 remote_canvas = None
 singleton_lock = threading.Lock()
 
+# while this is set, new figures are plain off-screen (Agg) figures rather
+# than the figure shown in the GUI.  see `offscreen_figures`.
+_offscreen = False
+
+@contextlib.contextmanager
+def offscreen_figures():
+    """
+    A context manager: figures made with pyplot inside it are ordinary
+    off-screen figures, so that plots can be rendered to files (eg, for a
+    report) without disturbing the plot that's on the screen.  The caller
+    is responsible for closing them (``plt.close(fig)``.)  Hold the plot
+    lock while using this.
+    """
+    global _offscreen
+    old = _offscreen
+    _offscreen = True
+    try:
+        yield
+    finally:
+        _offscreen = old
+
 def new_figure_manager(num, *args, **kwargs):
     """
     Create a new figure manager instance.  This maintains the remote canvas as
@@ -553,6 +574,10 @@ def new_figure_manager(num, *args, **kwargs):
     # make a new figure
     FigureClass = kwargs.pop('FigureClass', Figure)
     new_fig = FigureClass(*args, **kwargs)
+    
+    if _offscreen:
+        # don't touch the canvas (or the figure) that's on the screen
+        return FigureManagerBase(FigureCanvasAgg(new_fig), num)
  
     with singleton_lock:
      

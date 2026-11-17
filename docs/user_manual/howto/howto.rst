@@ -19,6 +19,7 @@ something that you find confusing, please feel free to submit a bug report
    tasbe
    export_fcs
    gate_interchange
+   report
    export
    by
    error_bars

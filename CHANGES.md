@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **Export report (PDF / PowerPoint)** in the File menu: put several of the
+  workflow's plots on pages or slides, drawn exactly as on screen. One plot
+  per page gives a vector PDF with editable text. Also available as
+  `flow.export_report()`. PowerPoint export uses `python-pptx`.
 - New **Proliferation** operation (`ProliferationOp`): fits the generations
   of a dye-dilution (CFSE, CellTrace) histogram and reports percent divided,
   division, proliferation, expansion and replication indices.
