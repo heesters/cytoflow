@@ -30,7 +30,7 @@ The `pyface.tasks` application.
 
 import logging, io, os, pickle, sys
 
-from traits.api import Bool, Instance, List, Property, Str, Any, File
+from traits.api import Bool, Instance, List, Property, Str, Any, File, observe
 
 from envisage.ui.tasks.api import TasksApplication
 from envisage.ui.tasks.tasks_application import TasksApplicationState
@@ -197,8 +197,8 @@ class CytoflowApplication(TasksApplication):
         
     def show_error(self, error_string):
         """GUI error handler"""
-        error(None, "An exception has occurred.  Please report a problem from the Help menu!\n\n"
-                    "Afterwards, may need to restart Cytoflow to continue working.\n\n" 
+        error(None, "An exception has occurred.\n\n"
+                    "You may need to restart Cytoflow-GCB to continue working.\n\n"
                     + error_string)
         
     def show_warning(self, warning_string):
@@ -207,6 +207,16 @@ class CytoflowApplication(TasksApplication):
             self.shown_warnings.append(warning_string)
             warning(None, warning_string)
             
+    @observe('windows.items')
+    def _on_windows_changed(self, event):
+        """Restore exact Qt window geometry once the main window is created."""
+        for w in event.added:
+            # Delay until after the window is actually shown so the geometry
+            # is applied to a fully constructed QWidget.
+            from pyface.qt import QtCore
+            QtCore.QTimer.singleShot(200, self._restore_window_geometry)
+            break  # only need to hook once
+
     def stop(self):
         """Overridden from `envisage.ui.tasks.tasks_application.TasksApplication` to shut down the remote process"""
         super().stop()
@@ -256,7 +266,14 @@ class CytoflowApplication(TasksApplication):
         # Grab the current window layouts.
         window_layouts = [w.get_window_layout() for w in self.windows]
         self._state.previous_window_layouts = window_layouts
-     
+
+        # Also save each window's raw Qt geometry so we restore the exact
+        # position and size (important on Retina / multi-monitor setups).
+        geometries = {}
+        for i, w in enumerate(self.windows):
+            if w.control is not None:
+                geometries[i] = bytes(w.control.saveGeometry())
+
         # Attempt to pickle the application state.
         filename = os.path.join(self.state_location, 'application_memento')
         try:
@@ -265,6 +282,30 @@ class CytoflowApplication(TasksApplication):
         except Exception as e:
             # If anything goes wrong, log the error and continue.
             logger.exception('Had a problem saving application layout: {}'.format(str(e)))
+
+        # Save geometries separately (not in the pickle, so a version mismatch
+        # doesn't lose the window position).
+        geom_file = os.path.join(self.state_location, 'window_geometry')
+        try:
+            with open(geom_file, 'wb') as f:
+                pickle.dump(geometries, f)
+        except Exception:
+            pass
+
+    def _restore_window_geometry(self):
+        """Restore exact window geometry from the saved file, if present."""
+        geom_file = os.path.join(self.state_location, 'window_geometry')
+        if not os.path.exists(geom_file):
+            return
+        try:
+            with open(geom_file, 'rb') as f:
+                geometries = pickle.load(f)
+            for i, w in enumerate(self.windows):
+                if i in geometries and w.control is not None:
+                    from pyface.qt import QtCore
+                    w.control.restoreGeometry(QtCore.QByteArray(geometries[i]))
+        except Exception:
+            pass
     #### Trait initializers ###################################################
 
     def _default_layout_default(self):

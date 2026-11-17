@@ -198,6 +198,8 @@ class FlowTask(Task):
                               TaskAction(name='Export report (PDF / PowerPoint)...',
                                          method='on_export_report',
                                          accelerator='Ctrl+Shift+R'),
+                              TaskAction(name='Channel scale defaults...',
+                                         method='on_channel_scale_defaults'),
                               PreferencesAction(),
                               id='File', name='&File'),
                         SMenu(TaskAction(name='Undo',
@@ -765,12 +767,85 @@ class FlowTask(Task):
         pass
     
     
+    def on_channel_scale_defaults(self):
+        """
+        Open a simple dialog for editing per-channel default scales.  The
+        mapping is stored in user preferences and auto-applied when a
+        ScaleSettingsOp is inserted after an Import.
+        """
+        from pyface.qt import QtGui, QtCore
+
+        prefs = self.application.preferences_helper
+        current = prefs.get_channel_scale_defaults()
+
+        # Build a simple two-column table dialog using Qt directly
+        SCALES = ['linear', 'log', 'logicle', 'arcsinh', 'hlog']
+
+        dlg = QtGui.QDialog(self.window.control)
+        dlg.setWindowTitle("Channel Scale Defaults")
+        dlg.setMinimumWidth(420)
+        layout = QtGui.QVBoxLayout(dlg)
+
+        label = QtGui.QLabel(
+            "Set the default scale for each channel.  These are applied\n"
+            "automatically when you open a new experiment.\n"
+            "Leave blank or use 'logicle' to keep the automatic default.")
+        layout.addWidget(label)
+
+        table = QtGui.QTableWidget(0, 2, dlg)
+        table.setHorizontalHeaderLabels(["Channel", "Scale"])
+        table.horizontalHeader().setStretchLastSection(True)
+        table.setSelectionBehavior(QtGui.QAbstractItemView.SelectionBehavior.SelectRows)
+
+        def _add_row(channel='', scale='logicle'):
+            row = table.rowCount()
+            table.insertRow(row)
+            table.setItem(row, 0, QtGui.QTableWidgetItem(channel))
+            combo = QtGui.QComboBox()
+            combo.addItems(SCALES)
+            idx = combo.findText(scale)
+            if idx >= 0:
+                combo.setCurrentIndex(idx)
+            table.setCellWidget(row, 1, combo)
+
+        for ch, sc in sorted(current.items()):
+            _add_row(ch, sc)
+
+        layout.addWidget(table)
+
+        btn_row = QtGui.QHBoxLayout()
+        add_btn = QtGui.QPushButton("Add row")
+        del_btn = QtGui.QPushButton("Remove selected")
+        add_btn.clicked.connect(lambda: _add_row())
+        del_btn.clicked.connect(lambda: table.removeRow(table.currentRow()))
+        btn_row.addWidget(add_btn)
+        btn_row.addWidget(del_btn)
+        btn_row.addStretch()
+        layout.addLayout(btn_row)
+
+        buttons = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.StandardButton.Ok |
+            QtGui.QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        layout.addWidget(buttons)
+
+        if dlg.exec() == QtGui.QDialog.DialogCode.Accepted:
+            new_map = {}
+            for row in range(table.rowCount()):
+                ch_item = table.item(row, 0)
+                combo = table.cellWidget(row, 1)
+                if ch_item and ch_item.text().strip() and combo:
+                    new_map[ch_item.text().strip()] = combo.currentText()
+            import json
+            prefs.channel_scale_defaults_json = json.dumps(new_map)
+
     def on_docs(self):
         """
         Event handler for the "Online documentation...." menu item.
         Opens a webbrowser to the online manual at readthedocs.io
         """
-        
+
         webbrowser.open_new_tab("https://cytoflow.readthedocs.io/en/stable/user_manual/user_manual.html")
 
     
@@ -855,22 +930,21 @@ class FlowTask(Task):
         """
         
         versions = self._get_package_versions()
-        text = ["<b>Cytoflow {0}</b>".format(versions['cytoflow']),
+        text = ["<b>Cytoflow-GCB {0}</b>".format(versions['cytoflow']),
+                "<p>Based on <a href=https://github.com/cytoflow/cytoflow>Cytoflow</a> "
+                "by Brian Teague. Extended for the GCB lab.</p>",
                 "<p>"]
-        
+
         ver_text = ["{0} {1}".format(key, value) for key, value in versions.items()]
-        
         text.extend(ver_text)
-        
-        text.extend(["Icons from the <a href=http://tango.freedesktop.org>Tango Desktop Project</a>",
-                "<a href=https://thenounproject.com/search/?q=setup&i=14287>Settings icon</a> by Paulo Sa Ferreira from <a href=https://thenounproject.com>The Noun Project</a>",
-                "<a href=https://thenounproject.com/search/?q=processing&i=849831>Processing icon</a> by Gregor Cresnar from <a href=https://thenounproject.com>The Noun Project</a>",
+
+        text.extend(["<p>Icons from the <a href=http://tango.freedesktop.org>Tango Desktop Project</a>",
                 "<a href=http://www.freepik.com/free-photos-vectors/background>App icon from Starline - Freepik.com</a>",
-                "Cuvette image from Wikimedia Commons user <a href=http://commons.wikimedia.org/wiki/File:Hellma_Large_cone_cytometry_cell.JPG>HellmaUSA</a>"])
-        
+                "Cuvette image from Wikimedia Commons user <a href=http://commons.wikimedia.org/wiki/File:Hellma_Large_cone_cytometry_cell.JPG>HellmaUSA</a></p>"])
+
         dialog = AboutDialog(text = text,
                              parent = self.window.control,
-                             title = "About",
+                             title = "About Cytoflow-GCB",
                              image = ImageResource('cuvette'),
                              additions = text)
         dialog.open()

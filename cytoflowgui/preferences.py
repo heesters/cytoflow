@@ -25,13 +25,28 @@ Skeleton preferences manager. At the moment, the only preference is whether
 to always use the default application layout.
 """
 
+import json
+
 from envisage.ui.tasks.api import PreferencesPane
 from apptools.preferences.api import PreferencesHelper
-from traits.api import Bool
-from traitsui.api import HGroup, VGroup, Item, Label, View
+from traits.api import Bool, Str, Dict, observe
+from traitsui.api import HGroup, VGroup, Item, Label, View, TabularEditor
+from traitsui.tabular_adapter import TabularAdapter
+
+
+class _ChannelScaleRow:
+    def __init__(self, channel='', scale='logicle'):
+        self.channel = channel
+        self.scale = scale
+
+
+class _ChannelScaleAdapter(TabularAdapter):
+    columns = [('Channel', 'channel'), ('Default scale', 'scale')]
+    scale_values = ['linear', 'log', 'logicle', 'arcsinh', 'hlog']
+
 
 class CytoflowPreferences(PreferencesHelper):
-    """ 
+    """
     The preferences helper for the Cytoflow application.
     """
 
@@ -45,16 +60,34 @@ class CytoflowPreferences(PreferencesHelper):
     # See TasksApplication for more information.
     always_use_default_layout = Bool
     """Whether to always apply the default application layout."""
-    
+
     # Should the UI show the toolbar names?
     show_toolbar_names = Bool
-    
+
     # Is this our first run?
     first_run = Bool
 
+    # JSON-encoded dict: channel_name -> scale_name.  Stored as a plain Str
+    # so apptools.preferences can serialise it without special machinery.
+    channel_scale_defaults_json = Str("{}")
+    """Per-channel default scales, e.g. {"BV421-A": "logicle", "FSC-A": "linear"}"""
+
+    def get_channel_scale_defaults(self):
+        """Return the channel → scale mapping as a plain dict."""
+        try:
+            return json.loads(self.channel_scale_defaults_json)
+        except Exception:
+            return {}
+
+    def set_channel_scale_default(self, channel, scale):
+        """Record that *channel* should default to *scale*."""
+        d = self.get_channel_scale_defaults()
+        d[channel] = scale
+        self.channel_scale_defaults_json = json.dumps(d)
+
 
 class CytoflowPreferencesPane(PreferencesPane):
-    """ 
+    """
     The preferences pane for the Cytoflow application.
     """
 

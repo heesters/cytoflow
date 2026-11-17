@@ -63,6 +63,64 @@ def log_excepthook(typ, val, tb):
                   .format(typ, val, tb_str))
     
                          
+def _apply_theme(qapp):
+    """
+    Apply a light or dark Fusion palette matching the OS system theme, and
+    set matplotlib's default style to match.  Called once after QApplication
+    is configured.
+    """
+    from pyface.qt import QtGui, QtCore
+    import matplotlib
+
+    # Detect dark mode: check if the window background is darker than 50%.
+    bg = qapp.palette().color(QtGui.QPalette.ColorRole.Window)
+    is_dark = bg.lightness() < 128
+
+    if is_dark:
+        # Dark Fusion palette
+        p = QtGui.QPalette()
+        c = QtGui.QColor
+        p.setColor(QtGui.QPalette.ColorRole.Window,          c(45,  45,  45))
+        p.setColor(QtGui.QPalette.ColorRole.WindowText,      c(220, 220, 220))
+        p.setColor(QtGui.QPalette.ColorRole.Base,            c(30,  30,  30))
+        p.setColor(QtGui.QPalette.ColorRole.AlternateBase,   c(53,  53,  53))
+        p.setColor(QtGui.QPalette.ColorRole.ToolTipBase,     c(255, 255, 220))
+        p.setColor(QtGui.QPalette.ColorRole.ToolTipText,     c(0,   0,   0))
+        p.setColor(QtGui.QPalette.ColorRole.Text,            c(220, 220, 220))
+        p.setColor(QtGui.QPalette.ColorRole.Button,          c(53,  53,  53))
+        p.setColor(QtGui.QPalette.ColorRole.ButtonText,      c(220, 220, 220))
+        p.setColor(QtGui.QPalette.ColorRole.BrightText,      c(255,  80,  80))
+        p.setColor(QtGui.QPalette.ColorRole.Link,            c(42, 130, 218))
+        p.setColor(QtGui.QPalette.ColorRole.Highlight,       c(42, 130, 218))
+        p.setColor(QtGui.QPalette.ColorRole.HighlightedText, c(0,   0,   0))
+        # Disabled colours
+        p.setColor(QtGui.QPalette.ColorGroup.Disabled,
+                   QtGui.QPalette.ColorRole.ButtonText, c(127, 127, 127))
+        p.setColor(QtGui.QPalette.ColorGroup.Disabled,
+                   QtGui.QPalette.ColorRole.WindowText, c(127, 127, 127))
+        p.setColor(QtGui.QPalette.ColorGroup.Disabled,
+                   QtGui.QPalette.ColorRole.Text,       c(127, 127, 127))
+        qapp.setPalette(p)
+
+        # Matplotlib dark style
+        matplotlib.rcParams.update({
+            'figure.facecolor':  '#1e1e1e',
+            'axes.facecolor':    '#1e1e1e',
+            'savefig.facecolor': '#1e1e1e',
+            'text.color':        '#dcdcdc',
+            'axes.labelcolor':   '#dcdcdc',
+            'xtick.color':       '#dcdcdc',
+            'ytick.color':       '#dcdcdc',
+            'axes.edgecolor':    '#555555',
+            'grid.color':        '#444444',
+            'legend.facecolor':  '#2d2d2d',
+            'legend.edgecolor':  '#555555',
+        })
+    else:
+        # Keep matplotlib defaults (white background)
+        pass
+
+
 def run_gui():
     """Run the GUI!"""
     import os
@@ -75,12 +133,16 @@ def run_gui():
         # if we're not running as a one-click, fail gracefully
         pass
     
-    # disable OpenGL in the qt web engine 
+    # disable OpenGL in the qt web engine
     os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
     os.environ["QMLSCENE_DEVICE"] = "softwarecontext"
-    
+
     # disable OpenGL on raster surfaces on linux / XCB
     os.environ["QT_XCB_GL_INTEGRATION"] = "none"
+
+    # on macOS: opt into Retina/HiDPI rendering for the web engine
+    if sys.platform == 'darwin':
+        os.environ.setdefault("QT_ENABLE_HIGHDPI_SCALING", "1")
 
     from pyface.qt import QtGui, QtCore
 
@@ -145,7 +207,20 @@ def run_gui():
                 
     from pyface.ui.qt.application_window import ApplicationWindow
     ApplicationWindow._update_tool_bar_managers = _update_tool_bar_managers
-    
+
+    if sys.platform == 'darwin':
+        # Use the native macOS unified title-and-toolbar so the toolbar merges
+        # into the title bar, saving vertical space on a laptop.
+        _orig_create = ApplicationWindow._create_control
+        def _mac_create_control(self, parent):
+            ctrl = _orig_create(self, parent)
+            try:
+                ctrl.setUnifiedTitleAndToolBarOnMac(True)
+            except Exception:
+                pass
+            return ctrl
+        ApplicationWindow._create_control = _mac_create_control
+
     # monkey patch pyface.image.image.ImageVolume to stop overwriting the
     # standard image libraries, which breaks Mac code signing
     
@@ -187,7 +262,8 @@ def run_gui():
     from cytoflowgui.cytoflow_application import CytoflowApplication
 
     from cytoflowgui.op_plugins import (OpPluginManager,
-                                        ImportPlugin, 
+                                        ImportPlugin,
+                                        SampleLabelsPlugin,
                                         ThresholdPlugin,
                                         RangePlugin, 
                                         QuadPlugin,
@@ -276,6 +352,7 @@ def run_gui():
     
     op_plugins = [OpPluginManager(),
                   ImportPlugin(),
+                  SampleLabelsPlugin(),
                   ThresholdPlugin(),
                   RangePlugin(),
                   QuadPlugin(),
@@ -333,7 +410,13 @@ def run_gui():
                               filename = args.filename,
                               debug = args.debug)
 
-    QtGui.QApplication.instance().setStyle(QtGui.QStyleFactory.create('Fusion'))
+    qapp = QtGui.QApplication.instance()
+    qapp.setStyle(QtGui.QStyleFactory.create('Fusion'))
+
+    # Detect system dark mode (works on macOS and Windows 10+).
+    # Qt6 / PyQt5 may auto-detect; we do it explicitly so matplotlib also
+    # follows the same palette.
+    _apply_theme(qapp)
 
     app.run()
 

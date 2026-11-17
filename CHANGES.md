@@ -1,5 +1,12 @@
 ## Unreleased
 
+- **macOS GUI improvements**: dark-mode support (Fusion palette + matplotlib
+  style adapt to system light/dark), unified title+toolbar bar on macOS,
+  HiDPI/Retina opt-in, window position/size saved and restored exactly
+  (including multi-monitor).
+- **Channel scale defaults** (File menu → "Channel scale defaults..."): set a
+  per-channel preferred scale (logicle, arcsinh, …) that persists across
+  sessions.
 - Rename app to **Cytoflow-GCB**; remove the "Report a bug" toolbar button
   and Help menu item.
 - Fix sphinx help build: `plot_directive.py` appended Python's built-in
