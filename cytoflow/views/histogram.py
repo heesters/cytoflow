@@ -26,12 +26,13 @@ Plots a histogram.
 `HistogramView` -- the `IView` class that makes the plot.
 """
 
-from traits.api import Constant, provides
+from traits.api import Constant, provides, Str
 import matplotlib.pyplot as plt
 
 import numpy as np
 import math
 import bottleneck
+from natsort import natsorted
 
 import cytoflow.utility as util
 from .i_view import IView
@@ -41,10 +42,15 @@ from .base_views import Base1DView
 class HistogramView(Base1DView):
     """
     Plots a one-channel histogram
-    
+
     Attributes
     ----------
-        
+    overlay_condition : str
+        If set, all values of this condition are overlaid on **one** axes
+        instead of being split into separate facets.  Each value gets its
+        own color; a legend is added automatically.  ``xfacet``, ``yfacet``
+        and ``huefacet`` are ignored while this is set.
+
     Examples
     --------
     
@@ -72,10 +78,12 @@ class HistogramView(Base1DView):
         ...                    huefacet = 'Dox').plot(ex)
     """
     
-    # traits   
+    # traits
     id = Constant("cytoflow.view.histogram")
-    friendly_id = Constant("Histogram") 
-    
+    friendly_id = Constant("Histogram")
+
+    overlay_condition = Str("")
+
     def plot(self, experiment, **kwargs):
         """
         Plot a faceted histogram view of a channel
@@ -135,7 +143,110 @@ class HistogramView(Base1DView):
         else:  # flip axis labels
             kwargs.setdefault('xlabel', ylabel)
             kwargs.setdefault('ylabel', self.channel)
-        super().plot(experiment, **kwargs)
+
+        if self.overlay_condition:
+            self._overlay_plot(experiment, **kwargs)
+        else:
+            super().plot(experiment, **kwargs)
+
+    def _overlay_plot(self, experiment, **kwargs):
+        """Plot all values of overlay_condition on one axes."""
+        if experiment is None:
+            raise util.CytoflowViewError('experiment', "No experiment specified")
+        if self.overlay_condition not in experiment.conditions:
+            raise util.CytoflowViewError('overlay_condition',
+                                         "Overlay condition '{}' not in experiment"
+                                         .format(self.overlay_condition))
+
+        import seaborn as sns
+        import cytoflow
+        if cytoflow.RUNNING_IN_GUI:
+            sns.set_style('whitegrid', rc={"xtick.bottom": True, "ytick.left": True})
+            sns.set_context('notebook')
+
+        scale = util.scale_factory(self.scale, experiment, channel=self.channel)
+
+        subset = kwargs.pop('subset', getattr(self, 'subset', ''))
+        if subset:
+            try:
+                experiment = experiment.query(subset)
+            except Exception as e:
+                raise util.CytoflowViewError('subset',
+                                             "Subset string '{}' isn't valid".format(subset)) from e
+
+        lim = kwargs.pop('lim', None)
+        if lim is None:
+            min_q = kwargs.pop('min_quantile', 0.001)
+            max_q = kwargs.pop('max_quantile', 1.0)
+            lim = (experiment[self.channel].quantile(min_q),
+                   experiment[self.channel].quantile(max_q))
+        else:
+            kwargs.pop('min_quantile', None)
+            kwargs.pop('max_quantile', None)
+
+        # remove remaining unused base-class kwargs
+        for k in ('scale', 'sns_style', 'sns_context', 'sharex', 'sharey',
+                  'height', 'aspect', 'col_wrap', 'margin_titles', 'despine',
+                  'legend_loc', 'huelabel'):
+            kwargs.pop(k, None)
+
+        legend = kwargs.pop('legend', True)
+        xlabel = kwargs.pop('xlabel', self.channel)
+        ylabel = kwargs.pop('ylabel', 'Density' if kwargs.get('density') else 'Count')
+        title = kwargs.pop('title', None)
+
+        normalize_to_mode = kwargs.pop('normalize_to_mode', False)
+        offset = kwargs.pop('offset', 0) or 0
+
+        scaled_data = scale(experiment[self.channel])
+        num_bins = kwargs.pop('num_bins', util.num_hist_bins(scaled_data))
+        num_bins = util.num_hist_bins(scaled_data) if num_bins is None else num_bins
+        num_bins = max(min(num_bins, 1000), 100)
+
+        xmin = bottleneck.nanmin(scaled_data)
+        xmax = bottleneck.nanmax(scaled_data)
+        bins = scale.inverse(np.linspace(xmin, xmax, num=int(num_bins), endpoint=True))
+
+        kwargs.setdefault('histtype', 'step')
+        kwargs.setdefault('linewidth', 2)
+        kwargs.setdefault('density', True)
+        kwargs.pop('alpha', None)  # step histograms don't use alpha well
+
+        values = natsorted(experiment[self.overlay_condition].unique())
+        palette = sns.color_palette('tab10', len(values))
+
+        fig, ax = plt.subplots()
+        tops = []
+        for i, val in enumerate(values):
+            subset_data = experiment[experiment[self.overlay_condition] == val][self.channel]
+            subset_data = subset_data[(subset_data > bins[0]) & (subset_data < bins[-1])]
+            if len(subset_data) == 0:
+                continue
+            if normalize_to_mode:
+                counts, _ = np.histogram(subset_data, bins=bins)
+                counts = counts.astype(float)
+                if counts.max() > 0:
+                    counts = counts / counts.max() * 100.0
+                n, _, _ = ax.hist(bins[:-1], bins=bins, weights=counts,
+                                  color=palette[i], label=str(val),
+                                  bottom=i * offset * 100.0 if offset else None,
+                                  **kwargs)
+            else:
+                n, _, _ = ax.hist(subset_data, bins=bins, color=palette[i],
+                                  label=str(val), **kwargs)
+            tops.append(max(n))
+
+        ax.set_xscale(scale.name, **scale.get_mpl_params(ax.get_xaxis()))
+        ax.set_xlim(lim)
+        if tops:
+            ax.set_ylim(0, 1.05 * max(tops))
+        ax.set_xlabel(util.channel_label(experiment, xlabel))
+        ax.set_ylabel(ylabel)
+        if title:
+            ax.set_title(title)
+        if legend:
+            ax.legend(title=util.channel_label(experiment, self.overlay_condition),
+                      frameon=True)
 
     def _grid_plot(self, experiment, grid, cmap, **kwargs):
                         

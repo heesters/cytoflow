@@ -72,3 +72,4 @@ from .tasbe import TasbeWorkflowOp, TasbeWorkflowView
 from .hierarchy import HierarchyWorkflowOp, HierarchyGate
 from .category import CategoryWorkflowOp, CategoryOpSubset
 from .boolean_gate import BooleanGateWorkflowOp
+from .sample_labels import SampleLabelsWorkflowOp

@@ -31,6 +31,8 @@ import seaborn as sns
 from warnings import warn
 
 from traits.api import provides, Constant, Str, Any
+from natsort import natsorted
+import numpy as np
 
 import cytoflow.utility as util
 
@@ -91,6 +93,7 @@ class ScatterplotView(Base2DView):
     friend_id = Constant("Scatter Plot")
     huechannel = Str
     highlight = Str
+    overlay_condition = Str("")
     
     _highlight_mask = Any(transient = True)
     

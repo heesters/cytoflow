@@ -25,7 +25,7 @@ cytoflowgui.workflow.views.histogram
 
 from textwrap import dedent
 
-from traits.api import provides, Enum, Bool, Instance
+from traits.api import provides, Enum, Bool, Instance, Str
 
 from cytoflow import HistogramView
 import cytoflow.utility as util
@@ -50,6 +50,7 @@ class HistogramPlotParams(Data1DPlotParams):
 @provides(IWorkflowView)
 class HistogramWorkflowView(WorkflowFacetView, HistogramView):
     plot_params = Instance(HistogramPlotParams, ())
+    overlay_condition = Str("", apply=True)
             
     def get_notebook_code(self, idx):
         view = HistogramView()
@@ -65,8 +66,22 @@ class HistogramWorkflowView(WorkflowFacetView, HistogramView):
                 plot_params = ", " + plot_params_str if plot_params_str else ""))
 
     
-@camel_registry.dumper(HistogramWorkflowView, 'histogram', version = 2)
+@camel_registry.dumper(HistogramWorkflowView, 'histogram', version = 3)
 def _dump(view):
+    return dict(channel = view.channel,
+                scale = view.scale,
+                xfacet = view.xfacet,
+                yfacet = view.yfacet,
+                huefacet = view.huefacet,
+                huescale = view.huescale,
+                plotfacet = view.plotfacet,
+                subset_list = view.subset_list,
+                plot_params = view.plot_params,
+                current_plot = view.current_plot,
+                overlay_condition = view.overlay_condition)
+
+@camel_registry.dumper(HistogramWorkflowView, 'histogram', version = 2)
+def _dump_v2(view):
     return dict(channel = view.channel,
                 scale = view.scale,
                 xfacet = view.xfacet,

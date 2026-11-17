@@ -31,6 +31,7 @@ panel.
 from .i_op_plugin import IOperationPlugin, OpPluginManager, OP_PLUGIN_EXT
 from .op_plugin_base import OpHandler
 from .import_op import ImportPlugin
+from .sample_labels import SampleLabelsPlugin
 # 
 # # gates
 from .threshold import ThresholdPlugin

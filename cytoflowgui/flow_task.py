@@ -198,6 +198,12 @@ class FlowTask(Task):
                               TaskAction(name='Export report (PDF / PowerPoint)...',
                                          method='on_export_report',
                                          accelerator='Ctrl+Shift+R'),
+                              TaskAction(name='Save gate as template...',
+                                         method='on_save_gate_template',
+                                         accelerator='Ctrl+T'),
+                              TaskAction(name='Load gate template...',
+                                         method='on_load_gate_template',
+                                         accelerator='Ctrl+Shift+T'),
                               TaskAction(name='Channel scale defaults...',
                                          method='on_channel_scale_defaults'),
                               PreferencesAction(),
@@ -760,13 +766,131 @@ class FlowTask(Task):
             information(None, message)
 
     
+    def on_save_gate_template(self):
+        """
+        Save the current operation's gate parameters to a JSON template file
+        so it can be re-applied to future experiments.
+        """
+        import json, os, pathlib
+
+        if not self.model.selected or not self.model.selected.operation:
+            information(None, "Select a gate operation first.")
+            return
+
+        op = self.model.selected.operation
+
+        # Collect all traits that are involved in apply/estimate
+        apply_traits = [n for n in op.trait_names()
+                        if (op.trait(n).apply or op.trait(n).estimate)
+                        and not op.trait(n).transient
+                        and not op.trait(n).status]
+
+        def _jsonify(v):
+            if isinstance(v, (str, int, float, bool)) or v is None:
+                return v
+            if isinstance(v, (list, tuple)):
+                return [_jsonify(x) for x in v]
+            if isinstance(v, dict):
+                return {str(k): _jsonify(vv) for k, vv in v.items()}
+            return str(v)
+
+        payload = {
+            '_op_id': op.id,
+            '_op_friendly_id': op.friendly_id,
+        }
+        for name in apply_traits:
+            payload[name] = _jsonify(getattr(op, name))
+
+        # Ensure template directory exists
+        template_dir = pathlib.Path.home() / '.cytoflowgcb' / 'templates'
+        template_dir.mkdir(parents=True, exist_ok=True)
+
+        dialog = DefaultFileDialog(
+            parent=self.window.control,
+            action='save as',
+            default_directory=str(template_dir),
+            default_suffix='gatetemplate',
+            wildcard=FileDialog.create_wildcard("Gate templates", "*.gatetemplate") + ';' +
+                     FileDialog.create_wildcard("All files", "*"))
+        if dialog.open() != OK:
+            return
+
+        path = dialog.path
+        if not path.endswith('.gatetemplate'):
+            path += '.gatetemplate'
+
+        with open(path, 'w') as f:
+            json.dump(payload, f, indent=2)
+
+        information(None, "Gate template saved to\n{}".format(path))
+
+    def on_load_gate_template(self):
+        """
+        Load a gate template JSON file and add the corresponding operation
+        after the currently selected workflow item.
+        """
+        import json, pathlib
+
+        template_dir = pathlib.Path.home() / '.cytoflowgcb' / 'templates'
+        template_dir.mkdir(parents=True, exist_ok=True)
+
+        dialog = DefaultFileDialog(
+            parent=self.window.control,
+            action='open',
+            default_directory=str(template_dir),
+            wildcard=FileDialog.create_wildcard("Gate templates", "*.gatetemplate") + ';' +
+                     FileDialog.create_wildcard("All files", "*"))
+        if dialog.open() != OK:
+            return
+
+        try:
+            with open(dialog.path) as f:
+                payload = json.load(f)
+        except Exception as exc:
+            error(None, "Couldn't read template:\n\n{}".format(exc))
+            return
+
+        op_id = payload.pop('_op_id', None)
+        payload.pop('_op_friendly_id', None)
+
+        # Find the plugin that handles this operation
+        plugin = next(
+            (p for p in self.op_plugins
+             if getattr(p, 'operation_id', None) == op_id),
+            None)
+        if plugin is None:
+            error(None, "No plugin found for operation id '{}'.\n"
+                        "Make sure the operation is available in this version."
+                        .format(op_id))
+            return
+
+        new_op = plugin.get_operation()
+
+        for name, value in payload.items():
+            try:
+                setattr(new_op, name, value)
+            except Exception:
+                pass  # skip traits that don't match
+
+        from cytoflowgui.workflow.workflow_item import WorkflowItem
+        new_wi = WorkflowItem(operation=new_op)
+
+        wf = self.model.workflow
+        if self.model.selected and self.model.selected in wf:
+            idx = wf.index(self.model.selected) + 1
+        else:
+            idx = len(wf)
+
+        wf.insert(idx, new_wi)
+        self.model.selected = new_wi
+
     def on_prefs(self):
         """
         Event handler for the "preferences" button -- currently, do nothing
         """
         pass
-    
-    
+
+
     def on_channel_scale_defaults(self):
         """
         Open a simple dialog for editing per-channel default scales.  The

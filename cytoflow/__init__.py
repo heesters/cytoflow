@@ -113,6 +113,7 @@ from .operations.flowclean import FlowCleanOp
 from .operations.hierarchy import HierarchyOp
 from .operations.category import CategoryOp
 from .operations.boolean_gate import BooleanGateOp
+from .operations.sample_labels import SampleLabelsOp
 
 # gate interchange
 from .operations.gatingml import (export_gatingml, import_gatingml, 

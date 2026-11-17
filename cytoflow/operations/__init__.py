@@ -78,6 +78,7 @@ from .flowclean import FlowCleanOp
 from .hierarchy import HierarchyOp
 from .category import CategoryOp
 from .boolean_gate import BooleanGateOp
+from .sample_labels import SampleLabelsOp
 
 from .gatingml import export_gatingml, import_gatingml, import_flowjo_workspace
 
