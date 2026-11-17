@@ -83,4 +83,6 @@ from .bead_calibration import BeadCalibrationPlugin
 from .autofluorescence import AutofluorescencePlugin
 from .color_translation import ColorTranslationPlugin
 from .tasbe import TasbePlugin
+from .ontology_annotation import OntologyAnnotationPlugin
+from .calcium_flux import CalciumFluxPlugin
 

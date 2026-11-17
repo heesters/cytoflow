@@ -80,5 +80,9 @@ from .category import CategoryOp
 from .boolean_gate import BooleanGateOp
 from .sample_labels import SampleLabelsOp
 
+from .ontology_annotation import OntologyAnnotationOp, search_cl, get_cl_phenotypes
+
+from .calcium_flux import CalciumFluxOp, CalciumFluxView
+
 from .gatingml import export_gatingml, import_gatingml, import_flowjo_workspace
 
