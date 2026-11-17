@@ -15,7 +15,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 name: Test and package on MacOS (Intel)
-on: [push]
+on:
+  push:
+    branches:
+      - intel-builds-only
 jobs:
       
   test-on-macos:
