@@ -485,14 +485,14 @@ class GaussianMixtureOp(HasStrictTraits):
                  util.CytoflowOpWarning)
          
         if self.num_components > 1:
-            event_assignments = pd.Series(["{}_None".format(self.name)] * len(experiment), dtype = "object")
- 
+            event_assignments = pd.Series(np.full(len(experiment), "{}_None".format(self.name)), dtype="object")
+
         if self.sigma is not None:
-            event_gate = {i : pd.Series([False] * len(experiment), dtype = "bool")
-                           for i in range(self.num_components)}
- 
+            event_gate = {i: pd.Series(np.zeros(len(experiment), dtype=bool))
+                          for i in range(self.num_components)}
+
         if self.posteriors:
-            event_posteriors = {i : pd.Series([0.0] * len(experiment), dtype = "double")
+            event_posteriors = {i: pd.Series(np.zeros(len(experiment), dtype=float))
                                 for i in range(self.num_components)}
 
         if self.by:
@@ -532,7 +532,7 @@ class GaussianMixtureOp(HasStrictTraits):
                 
             # which values are missing?
 
-            x_na = pd.Series([False] * len(x))
+            x_na = pd.Series(np.zeros(len(x), dtype=bool))
             for c in self.channels:
                 x_na[np.isnan(x[c]).values] = True
                         
@@ -544,7 +544,7 @@ class GaussianMixtureOp(HasStrictTraits):
                 predicted = np.full(len(x), -1, "int")
                 predicted[~x_na] = gmm.predict(x[~x_na])
                 
-                predicted_str = pd.Series(["(none)"] * len(predicted))
+                predicted_str = pd.Series(np.full(len(predicted), "(none)"))
                 for c in range(0, self.num_components):
                     predicted_str[predicted == c] = "{0}_{1}".format(self.name, c + 1)
                 predicted_str[predicted == -1] = "{0}_None".format(self.name)
@@ -559,10 +559,9 @@ class GaussianMixtureOp(HasStrictTraits):
                     s = np.linalg.pinv(gmm.covariances_[c])
                     mu = gmm.means_[c]
                     
-                    # compute the Mahalanobis distance
-
-                    f = lambda x, mu, s: np.dot(np.dot((x - mu).T, s), (x - mu))
-                    dist = np.apply_along_axis(f, 1, x, mu, s)
+                    # compute the Mahalanobis distance (vectorised via einsum)
+                    diff = x - mu
+                    dist = np.einsum('ij,jk,ik->i', diff, s, diff)
 
                     # come up with a threshold based on sigma.  you'll note we
                     # didn't sqrt dist: that's because for a multivariate 
@@ -588,25 +587,23 @@ class GaussianMixtureOp(HasStrictTraits):
                 else:
                     g = tuple(list(group) + [c+1])
 
+                row = {}
                 if self.num_components > 1:
-                    stat.at[g, "Proportion"] = gmm.weights_[c]
-                
+                    row["Proportion"] = gmm.weights_[c]
+
+                s, _ = util.cov2corr(gmm.covariances_[c])
                 for cidx1, channel1 in enumerate(self.channels):
-                    stat.at[g, channel1 + ' Mean'] = \
+                    row[channel1 + ' Mean'] = \
                         self._scale[channel1].inverse(gmm.means_[c, cidx1])
-                    
-                    s, _ = util.cov2corr(gmm.covariances_[c])
-                    stat.at[g, '{} SD'.format(channel1)] = \
+                    row['{} SD'.format(channel1)] = \
                         self._scale[channel1].inverse(s[cidx1])
-                        
-                    stat.at[g, channel1 + ' Interval Low'] = self._scale[channel1].inverse(gmm.means_[c, cidx1] - s[cidx1])
-                    stat.at[g, channel1 + ' Interval High'] = self._scale[channel1].inverse(gmm.means_[c, cidx1] + s[cidx1])
-            
-                    # for cidx2, channel2 in enumerate(self.channels):
-                    #     g3 = tuple(list(g2) + [channel2])
-                    #     corr_stat[g3] = corr[cidx1, cidx2]
-                    #
-                    # corr_stat.drop(tuple(list(g2) + [channel1]), inplace = True)
+                    row[channel1 + ' Interval Low'] = \
+                        self._scale[channel1].inverse(gmm.means_[c, cidx1] - s[cidx1])
+                    row[channel1 + ' Interval High'] = \
+                        self._scale[channel1].inverse(gmm.means_[c, cidx1] + s[cidx1])
+
+                for col, val in row.items():
+                    stat.at[g, col] = val
 
         new_experiment = experiment.clone(deep = False)
           

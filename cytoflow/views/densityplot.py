@@ -179,21 +179,24 @@ class DensityView(Base2DView):
         xbins = xscale.inverse(np.linspace(xscale(xlim[0]), xscale(xlim[1]), gridsize))
         ybins = yscale.inverse(np.linspace(yscale(ylim[0]), yscale(ylim[1]), gridsize))
   
-        # set up the range of the color map
+        # compute histograms once; reuse them both for norm and for plotting
+        cached_hists = []
+        for _, data_ijk in grid.facet_data():
+            h, _, _ = np.histogram2d(data_ijk[self.xchannel],
+                                     data_ijk[self.ychannel],
+                                     bins=[xbins, ybins])
+            cached_hists.append(h)
+
         if 'norm' not in kwargs:
-            data_max = 0
-            for _, data_ijk in grid.facet_data():
-                x = data_ijk[self.xchannel]
-                y = data_ijk[self.ychannel]
-                h, _, _ = np.histogram2d(x, y, bins=[xbins, ybins])
-                data_max = max(data_max, h.max())
-                
-            hue_scale = util.scale_factory(self.huescale, 
-                                           experiment, 
-                                           data = np.array([1, data_max]))
+            data_max = max((h.max() for h in cached_hists), default=1)
+            hue_scale = util.scale_factory(self.huescale,
+                                           experiment,
+                                           data=np.array([1, data_max]))
             kwargs['norm'] = hue_scale.norm()
-        
-        grid.map(_densityplot, self.xchannel, self.ychannel, xbins = xbins, ybins = ybins, **kwargs)
+
+        hist_iter = iter(cached_hists)
+        grid.map(_densityplot, self.xchannel, self.ychannel,
+                 xbins=xbins, ybins=ybins, _precomputed=hist_iter, **kwargs)
         
         if self._highlight_mask is not None:
             grid.map(draw_highlight, self.xchannel, self.ychannel, 
@@ -208,8 +211,13 @@ class DensityView(Base2DView):
         
         
 def _densityplot(x, y, xbins, ybins, **kwargs):
-    
-    h, X, Y = np.histogram2d(x, y, bins=[xbins, ybins])
+    hist_iter = kwargs.pop('_precomputed', None)
+    if hist_iter is not None:
+        h = next(hist_iter)
+        X = xbins
+        Y = ybins
+    else:
+        h, X, Y = np.histogram2d(x, y, bins=[xbins, ybins])
     
     smoothed = kwargs.pop('smoothed', False)
     smoothed_sigma = kwargs.pop('smoothed_sigma', 1)

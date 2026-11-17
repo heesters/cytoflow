@@ -175,7 +175,7 @@ class CalciumFluxOp(HasStrictTraits):
             signal = (experiment.data[self.signal_channel] /
                       experiment.data[self.ratio_denominator])
         else:
-            signal = experiment.data[self.signal_channel].copy()
+            signal = experiment.data[self.signal_channel]
 
         # ---- convert time to seconds ----
         time_step = experiment.metadata.get('time_step', 1.0)
@@ -214,31 +214,21 @@ class CalciumFluxOp(HasStrictTraits):
                                                                 "Not responding"]))
 
         # ---- statistics ----
-        groupby = new_experiment.data.groupby(time_bin_condition, observed=True)
-        keys = list(groupby.groups.keys())
-        idx = pd.Index(keys, name=time_bin_condition)
+        agg_data = new_experiment.data[[time_bin_condition, ratio_channel,
+                                        responding_condition]].copy()
+        agg_data['_responding_int'] = (
+            agg_data[responding_condition] == "Responding").astype(float)
 
-        mean_vals = []
-        sem_vals = []
-        pct_vals = []
+        groupby = agg_data.groupby(time_bin_condition, observed=True)
+        agg = groupby[ratio_channel].agg(['mean', 'sem']).rename(
+            columns={'mean': 'mean_ratio', 'sem': 'sem_ratio'})
+        agg['sem_ratio'] = agg['sem_ratio'].fillna(0.0)
+        agg['pct_responding'] = groupby['_responding_int'].mean() * 100.0
+        agg.index.name = time_bin_condition
 
-        for key in keys:
-            grp = groupby.get_group(key)
-            ratio_grp = grp[ratio_channel]
-            resp_grp = grp[responding_condition]
-
-            mean_vals.append(ratio_grp.mean())
-            sem_vals.append(ratio_grp.sem() if len(ratio_grp) > 1 else 0.0)
-            pct_vals.append(100.0 * (resp_grp == "Responding").sum() /
-                            max(len(resp_grp), 1))
-
-        stat_mean = pd.DataFrame({'mean_ratio': mean_vals}, index=idx)
-        stat_sem = pd.DataFrame({'sem_ratio': sem_vals}, index=idx)
-        stat_pct = pd.DataFrame({'pct_responding': pct_vals}, index=idx)
-
-        stat_mean.index.name = time_bin_condition
-        stat_sem.index.name = time_bin_condition
-        stat_pct.index.name = time_bin_condition
+        stat_mean = agg[['mean_ratio']]
+        stat_sem = agg[['sem_ratio']]
+        stat_pct = agg[['pct_responding']]
 
         new_experiment.statistics["{}_mean_ratio".format(self.name)] = stat_mean
         new_experiment.statistics["{}_sem_ratio".format(self.name)] = stat_sem
@@ -371,18 +361,13 @@ class CalciumFluxView(HasStrictTraits):
                     else:
                         grp_data = sub_data
 
-                    # aggregate per time bin
+                    # aggregate per time bin in one pass
                     grouped = grp_data.groupby(time_bin_condition, observed=True)
-                    times = sorted(grouped.groups.keys())
-                    means = [grouped.get_group(t)[ratio_channel].mean()
-                             for t in times]
-                    sems = [grouped.get_group(t)[ratio_channel].sem()
-                            if len(grouped.get_group(t)) > 1 else 0.0
-                            for t in times]
-
-                    times = np.array(times)
-                    means = np.array(means)
-                    sems = np.array(sems)
+                    agg_v = grouped[ratio_channel].agg(['mean', 'sem'])
+                    agg_v['sem'] = agg_v['sem'].fillna(0.0)
+                    times = np.array(sorted(agg_v.index))
+                    means = agg_v.loc[times, 'mean'].values
+                    sems = agg_v.loc[times, 'sem'].values
 
                     label = str(hval) if hval is not None else None
                     ax.plot(times, means, color=color, label=label)
