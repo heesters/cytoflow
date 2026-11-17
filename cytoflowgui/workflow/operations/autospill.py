@@ -99,8 +99,13 @@ class AutoSpillWorkflowOp(CompensationWorkflowOp, AutoSpillOp):
                                        "No spillover matrix. Add the "
                                        "single-color controls, then click "
                                        "\"Estimate!\"")
-            
+
         return CompensationOp.apply(self, experiment)
+
+    def default_view(self, **kwargs):
+        if kwargs.pop('qc', False):
+            return AutoSpillQCWorkflowView(op = self, **kwargs)
+        return super().default_view(**kwargs)
     
     def should_clear_estimate(self, changed, payload):
         if changed == Changed.ESTIMATE:

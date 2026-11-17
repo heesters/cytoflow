@@ -95,7 +95,7 @@ from traitsui.api import (View, Item, VGroup, ButtonEditor, FileEditor, HGroup,
 from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
 
-from ..editors import InstanceHandlerEditor, VerticalListEditor, SubsetListEditor
+from ..editors import InstanceHandlerEditor, VerticalListEditor, SubsetListEditor, ColorTextEditor
 from ..workflow.operations import (AutoSpillWorkflowOp, CompensationWorkflowView,
                                    BleedthroughChannel, AutoSpillQCWorkflowView)
 from ..subset_controllers import subset_handler_factory
@@ -117,6 +117,7 @@ class AutoSpillChannelHandler(Controller):
 class AutoSpillHandler(OpHandler):
     add_channel = Event
     remove_channel = Event
+    show_qc = Event
         
     channels = Property(List(Str), observe = 'context.previous_wi.channels')
      
@@ -178,6 +179,11 @@ class AutoSpillHandler(OpHandler):
                      editor = ButtonEditor(value = True,
                                            label = "Estimate!"),
                      show_label = False),
+                Item('handler.show_qc',
+                     editor = ButtonEditor(value = True,
+                                           label = "Show QC View"),
+                     show_label = False,
+                     tooltip = "Show spillover matrix and slope-error QC heatmaps"),
                 shared_op_traits_view))
         
     # MAGIC: called when add_channel is set
@@ -195,6 +201,22 @@ class AutoSpillHandler(OpHandler):
             return natsorted(self.context.previous_wi.channels)
         except AttributeError:
             return []
+
+    def _show_qc_fired(self):
+        """Activate (or create) the QC view on the current WorkflowItem."""
+        wi = self.context.selected
+        if wi is None:
+            return
+        qc_id = 'cytoflow.views.autospill_qc'
+        # already in list? just switch to it
+        for view in wi.views:
+            if view.id == qc_id:
+                wi.current_view = view
+                return
+        # create it from the op
+        qc_view = self.model.default_view(qc=True)
+        wi.views.append(qc_view)
+        wi.current_view = qc_view
 
 
 class AutoSpillQCViewHandler(ViewHandler):
