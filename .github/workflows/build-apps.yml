@@ -84,6 +84,7 @@ jobs:
     name: Build macOS app (arm64)
     needs: prepare
     runs-on: macos-15
+    timeout-minutes: 360
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
       SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.prepare.outputs.version }}

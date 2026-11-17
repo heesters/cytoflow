@@ -21,6 +21,7 @@ jobs:
   test-on-macos:
     name: Run nose2 on ARM MacOS runner
     runs-on: macos-15
+    timeout-minutes: 360
     defaults:
       run:
         shell: bash -l {0}
