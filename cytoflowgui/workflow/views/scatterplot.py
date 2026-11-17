@@ -25,7 +25,7 @@ cytoflowgui.workflow.views.scatterplot
 
 from textwrap import dedent
 
-from traits.api import provides, Enum, Instance
+from traits.api import provides, Enum, Instance, Str
 
 from cytoflow import ScatterplotView
 import cytoflow.utility as util
@@ -41,9 +41,10 @@ class ScatterplotPlotParams(Data2DPlotParams):
     s = util.PositiveCFloat(2)
     marker = Enum(SCATTERPLOT_MARKERS)
     
-@provides(IWorkflowView)    
+@provides(IWorkflowView)
 class ScatterplotWorkflowView(WorkflowFacetView, ScatterplotView):
     plot_params = Instance(ScatterplotPlotParams, ())
+    overlay_condition = Str("", apply=True)
             
     def get_notebook_code(self, idx):
         view = ScatterplotView()
@@ -60,6 +61,24 @@ class ScatterplotWorkflowView(WorkflowFacetView, ScatterplotView):
         
         
 ### Serialization
+@camel_registry.dumper(ScatterplotWorkflowView, 'scatterplot', version = 5)
+def _dump_v5(view):
+    return dict(xchannel = view.xchannel,
+                xscale = view.xscale,
+                ychannel = view.ychannel,
+                yscale = view.yscale,
+                huechannel = view.huechannel,
+                xfacet = view.xfacet,
+                yfacet = view.yfacet,
+                huefacet = view.huefacet,
+                huescale = view.huescale,
+                plotfacet = view.plotfacet,
+                highlight = view.highlight,
+                subset_list = view.subset_list,
+                plot_params = view.plot_params,
+                current_plot = view.current_plot,
+                overlay_condition = view.overlay_condition)
+
 @camel_registry.dumper(ScatterplotWorkflowView, 'scatterplot', version = 4)
 def _dump_v4(view):
     return dict(xchannel = view.xchannel,

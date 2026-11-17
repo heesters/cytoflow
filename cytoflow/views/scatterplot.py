@@ -139,8 +139,74 @@ class ScatterplotView(Base2DView):
             
         self._highlight_mask = highlight_mask(experiment, self.highlight) \
                                if self.highlight else None
-            
-        super().plot(experiment, **kwargs)
+
+        if self.overlay_condition:
+            self._overlay_plot(experiment, **kwargs)
+        else:
+            super().plot(experiment, **kwargs)
+
+    def _overlay_plot(self, experiment, **kwargs):
+        """Plot all values of overlay_condition on one axes with per-condition colors."""
+        if experiment is None:
+            raise util.CytoflowViewError('experiment', "No experiment specified")
+        if self.overlay_condition not in experiment.conditions:
+            raise util.CytoflowViewError('overlay_condition',
+                                         "Overlay condition '{}' not in experiment"
+                                         .format(self.overlay_condition))
+
+        xscale = util.scale_factory(self.xscale, experiment, channel=self.xchannel)
+        yscale = util.scale_factory(self.yscale, experiment, channel=self.ychannel)
+
+        subset = kwargs.pop('subset', getattr(self, 'subset', ''))
+        if subset:
+            try:
+                experiment = experiment.query(subset)
+            except Exception as e:
+                raise util.CytoflowViewError('subset',
+                                             "Subset string '{}' isn't valid".format(subset)) from e
+
+        min_q = kwargs.pop('min_quantile', 0.001)
+        max_q = kwargs.pop('max_quantile', 1.0)
+        xlim = (experiment[self.xchannel].quantile(min_q),
+                experiment[self.xchannel].quantile(max_q))
+        ylim = (experiment[self.ychannel].quantile(min_q),
+                experiment[self.ychannel].quantile(max_q))
+
+        for k in ('scale', 'lim', 'sns_style', 'sns_context', 'sharex', 'sharey',
+                  'height', 'aspect', 'col_wrap', 'margin_titles', 'despine',
+                  'legend_loc', 'huelabel', 'palette'):
+            kwargs.pop(k, None)
+
+        legend = kwargs.pop('legend', True)
+        xlabel = kwargs.pop('xlabel', self.xchannel)
+        ylabel = kwargs.pop('ylabel', self.ychannel)
+        title = kwargs.pop('title', None)
+
+        alpha = kwargs.pop('alpha', 0.25)
+        s = kwargs.pop('s', 2)
+        marker = kwargs.pop('marker', 'o')
+
+        values = natsorted(experiment[self.overlay_condition].unique())
+        palette = sns.color_palette('tab10', len(values))
+
+        fig, ax = plt.subplots()
+        for i, val in enumerate(values):
+            subset_data = experiment[experiment[self.overlay_condition] == val]
+            ax.scatter(subset_data[self.xchannel], subset_data[self.ychannel],
+                       c=[palette[i]], alpha=alpha, s=s, marker=marker,
+                       label=str(val))
+
+        ax.set_xscale(xscale.name, **xscale.get_mpl_params(ax.get_xaxis()))
+        ax.set_yscale(yscale.name, **yscale.get_mpl_params(ax.get_yaxis()))
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        ax.set_xlabel(util.channel_label(experiment, xlabel))
+        ax.set_ylabel(util.channel_label(experiment, ylabel))
+        if title:
+            ax.set_title(title)
+        if legend:
+            ax.legend(title=util.channel_label(experiment, self.overlay_condition),
+                      frameon=True, markerscale=5)
         
     def _grid_plot(self, experiment, grid, cmap, **kwargs):
 

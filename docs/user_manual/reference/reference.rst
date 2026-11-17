@@ -72,6 +72,11 @@ Gates
 		:link: operations/boolean_gate
 		:link-type: doc
 
+	.. grid-item-card:: Sample Labels
+		:class-card: gallery-card
+		:link: operations/sample_labels
+		:link-type: doc
+
 	
 Preprocessing
 -------------

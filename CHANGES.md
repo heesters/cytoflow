@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **Sample Labels** operation: assign short, human-readable labels to any
+  condition (e.g. rename filenames to "Control / Treated").  Optionally
+  stores the relabelled values in a new condition.
+- **Gate Template Library**: save any gate operation to a `.gatetemplate`
+  JSON file (File > Save gate as template… / Ctrl+T) and reload it into
+  a new experiment (File > Load gate template… / Ctrl+Shift+T).
 - **macOS GUI improvements**: dark-mode support (Fusion palette + matplotlib
   style adapt to system light/dark), unified title+toolbar bar on macOS,
   HiDPI/Retina opt-in, window position/size saved and restored exactly
