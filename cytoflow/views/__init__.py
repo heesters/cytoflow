@@ -238,3 +238,4 @@ from .long_table import LongTableView
 from .radviz import RadvizView
 from .parallel_coords import ParallelCoordinatesView
 from .export_fcs import ExportFCS
+from .calcium_flux import CalciumFluxView
