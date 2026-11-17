@@ -1,5 +1,11 @@
 ## Unreleased
 
+- New **Proliferation** operation (`ProliferationOp`): fits the generations
+  of a dye-dilution (CFSE, CellTrace) histogram and reports percent divided,
+  division, proliferation, expansion and replication indices.
+- New **Cell Cycle** operation (`CellCycleOp`): fits G0/G1, S and G2/M to a
+  DNA-content histogram (Dean-Jett-Fox type model), with sub-G1 and
+  above-G2/M percentages.
 - New **Population Tree** operation (`PopulationTreeOp`): nested populations
   with counts, % of parent and % of total, as a statistic and a tree plot.
   "Build from workflow" infers each gate's parent from imported FlowJo

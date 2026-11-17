@@ -63,6 +63,8 @@ from .flowpeaks import FlowPeaksPlugin
 from .kmeans import KMeansPlugin
 from .phenograph import PhenographPlugin
 from .population_tree import PopulationTreePlugin
+from .proliferation import ProliferationPlugin
+from .cell_cycle import CellCyclePlugin
 from .pca import PCAPlugin
 from .flowclean import FlowCleanPlugin
 from .tsne import tSNEPlugin

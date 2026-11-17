@@ -81,6 +81,8 @@ from .operations.autospill import AutoSpillOp
 from .operations.cross_entropy import CrossEntropyTestOp
 from .operations.phenograph import PhenographOp
 from .operations.population_tree import PopulationTreeOp, infer_populations
+from .operations.proliferation import ProliferationOp
+from .operations.cell_cycle import CellCycleOp
 from .operations.bead_calibration import BeadCalibrationOp
 from .operations.color_translation import ColorTranslationOp
 

@@ -145,6 +145,18 @@ Clustering
 		:link: operations/gaussian_1d
 		:link-type: doc
 	
+	.. grid-item-card:: Proliferation
+		:class-card: gallery-card
+		:img-top: operations/images/proliferation.svg
+		:link: operations/proliferation
+		:link-type: doc
+	
+	.. grid-item-card:: Cell Cycle
+		:class-card: gallery-card
+		:img-top: operations/images/cell_cycle.svg
+		:link: operations/cell_cycle
+		:link-type: doc
+	
 	.. grid-item-card:: Two Dimensional Gaussian Mixtures
 		:img-top: /operations/gaussian_2d-1.png
 		:link: operations/gaussian_2d
