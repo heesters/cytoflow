@@ -66,7 +66,7 @@ tree.)
 '''
 
 from traits.api import provides, Event, List
-from traitsui.api import (View, Item, VGroup, HGroup, TextEditor, ButtonEditor, 
+from traitsui.api import (View, Item, VGroup, HGroup, TextEditor, ButtonEditor,
                           CheckListEditor, Controller)
 from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
@@ -75,7 +75,9 @@ from ..view_plugins import ViewHandler
 from ..editors import (SubsetListEditor, ColorTextEditor, InstanceHandlerEditor,
                        VerticalListEditor)
 from ..workflow.operations import (PopulationTreeWorkflowOp, PopulationTreeWorkflowView,
-                                   PopulationTreePopulation, populations_from_workflow)
+                                   PopulationTreePopulation, populations_from_workflow,
+                                   BooleanGateWorkflowOp)
+from ..workflow.workflow_item import WorkflowItem
 from ..subset_controllers import subset_handler_factory
 
 from .i_op_plugin import IOperationPlugin, OP_PLUGIN_EXT
@@ -99,11 +101,12 @@ class PopulationHandler(Controller):
 
 
 class PopulationTreeHandler(OpHandler):
-    
+
     add_population = Event
     remove_population = Event
     build_from_workflow = Event
-    
+    create_gates = Event
+
     operation_traits_view = \
         View(Item('name',
                   editor = TextEditor(auto_set = False, placeholder = "None")),
@@ -121,6 +124,10 @@ class PopulationTreeHandler(OpHandler):
                     Item('handler.remove_population',
                          editor = ButtonEditor(value = True,
                                                label = "Remove a population")),
+                    Item('handler.create_gates',
+                         editor = ButtonEditor(value = True,
+                                               label = "Create Boolean Gates from populations"),
+                         tooltip = "Insert a BooleanGate op for every population in the tree"),
                     label = "Populations",
                     show_labels = False),
              Item('by',
@@ -148,9 +155,33 @@ class PopulationTreeHandler(OpHandler):
             subsets = list(view.subset_list) if view is not None and hasattr(view, 'subset_list') else []
             items.insert(0, (wi.operation, subsets))
             wi = wi.previous_wi
-            
+
         self.model.populations_list = [PopulationTreePopulation(name = n, gate = g, parent = p)
                                        for n, g, p in populations_from_workflow(items)]
+
+    def _create_gates_fired(self):
+        """Insert a BooleanGateWorkflowOp for every population in the tree."""
+        if not self.model.populations_list:
+            return
+        workflow = self.context
+        # find the WorkflowItem that owns self.model so we can insert after it
+        my_wi = next((wi for wi in workflow.workflow if wi.operation is self.model), None)
+        if my_wi is None:
+            return
+        insert_idx = workflow.workflow.index(my_wi) + 1
+        for pop in self.model.populations_list:
+            if not pop.gate:
+                continue
+            gate_name = (pop.name + '_gate') if pop.name else None
+            if not gate_name:
+                continue
+            op = BooleanGateWorkflowOp(name=gate_name, expression=pop.gate)
+            new_wi = WorkflowItem(operation=op, workflow=workflow)
+            workflow.workflow.insert(insert_idx, new_wi)
+            insert_idx += 1
+        # select the first inserted item (if any)
+        if insert_idx > workflow.workflow.index(my_wi) + 1:
+            workflow.selected = workflow.workflow[workflow.workflow.index(my_wi) + 1]
         
 
 class PopulationTreeViewHandler(ViewHandler):
