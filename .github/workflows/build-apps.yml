@@ -68,7 +68,7 @@ jobs:
           **These applications are not code-signed**, so macOS and Windows will warn before the first launch.
 
           ### macOS (Apple Silicon — M1/M2/M3/M4)
-          1. Download `cytoflow-gcb-gui-*-macos_arm64.zip` and unzip it.
+          1. Download `Cytoflow-GCB-macos_arm64.zip` and unzip it.
           2. Move **Cytoflow-GCB.app** to your Applications folder.
           3. First launch: right-click (or Control-click) the app → **Open** → **Open** again.
           4. If macOS still says "app is damaged", run once in Terminal:
@@ -77,7 +77,7 @@ jobs:
              ```
 
           ### Windows
-          1. Download `cytoflow-gcb-gui-*-win_x86-64.exe` and run it.
+          1. Download `Cytoflow-GCB-win_x86-64.exe` and run it.
           2. If Windows SmartScreen appears, click **More info** → **Run anyway**.
 
   build-macos:
@@ -142,11 +142,10 @@ jobs:
       id: zip_app
       run: |
         cd dist/
-        mv Cytoflow-GCB.app "Cytoflow-GCB-${VERSION}.app"
         # ditto keeps the symlinks and permissions inside the bundle intact
-        ditto -c -k --sequesterRsrc --keepParent "Cytoflow-GCB-${VERSION}.app" "cytoflow-gcb-gui-${VERSION}-macos_arm64.zip"
-        rm -rf "Cytoflow-GCB-${VERSION}.app" cytoflow
-        echo "GUI_FILE=cytoflow-gcb-gui-${VERSION}-macos_arm64.zip" >> $GITHUB_OUTPUT
+        ditto -c -k --sequesterRsrc --keepParent "Cytoflow-GCB.app" "Cytoflow-GCB-macos_arm64.zip"
+        rm -rf "Cytoflow-GCB.app" cytoflow
+        echo "GUI_FILE=Cytoflow-GCB-macos_arm64.zip" >> $GITHUB_OUTPUT
         ls -l
 
     - name: Save the app as an artifact
@@ -238,8 +237,8 @@ jobs:
       id: zip_app
       run: |
         cd dist
-        mv cytoflow-installer.exe "cytoflow-gcb-gui-${VERSION}-win_x86-64.exe"
-        echo "GUI_FILE=cytoflow-gcb-gui-${VERSION}-win_x86-64.exe" >> $GITHUB_OUTPUT
+        mv cytoflow-installer.exe "Cytoflow-GCB-win_x86-64.exe"
+        echo "GUI_FILE=Cytoflow-GCB-win_x86-64.exe" >> $GITHUB_OUTPUT
         rm -rf cytoflow
         ls -l
 
@@ -314,10 +313,10 @@ jobs:
       id: zip_app
       run: |
         cd dist
-        mv cytoflow "Cytoflow-GCB-${VERSION}"
-        tar -cjf "cytoflow-gcb-gui-${VERSION}-linux_x86-64.tar.bz2" "Cytoflow-GCB-${VERSION}"
-        rm -rf "Cytoflow-GCB-${VERSION}"
-        echo "GUI_FILE=cytoflow-gcb-gui-${VERSION}-linux_x86-64.tar.bz2" >> $GITHUB_OUTPUT
+        mv cytoflow Cytoflow-GCB
+        tar -cjf "Cytoflow-GCB-linux_x86-64.tar.bz2" Cytoflow-GCB
+        rm -rf Cytoflow-GCB
+        echo "GUI_FILE=Cytoflow-GCB-linux_x86-64.tar.bz2" >> $GITHUB_OUTPUT
         ls -l
 
     - name: Save the app as an artifact

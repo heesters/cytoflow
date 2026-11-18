@@ -306,21 +306,15 @@ class FlowTask(Task):
             self.application.preferences_helper.first_run = False
             
             msg = dedent("""
-            Welcome to <strong>Cytoflow!</strong>
+            Welcome to <strong>Cytoflow-GCB!</strong>
             <p>
-            First, you can find <strong>Cytoflow's</strong> manual online at
+            You can find the manual online at
             <a href="https://cytoflow.readthedocs.org">https://cytoflow.readthedocs.org</a>.
-            <p>
-            And second, while <strong>Cytoflow</strong> is free to use, publishing 
-            <strong>Cytoflow</strong> for Windows and Mac costs me about $200 per 
-            year. If you can spare a few bucks, please support 
-            <strong>Cytoflow's</strong> ongoing availability at 
-            <a href="https://ko-fi.com/lrteague">https://ko-fi.com/lrteague</a>?
             <p>
             Thanks! And happy flowing!
             """)
-            
-            dialog = MessageDialog(title = "Welcome to Cytoflow!",
+
+            dialog = MessageDialog(title = "Welcome to Cytoflow-GCB!",
                                    message = msg,
                                    text_format = "rich",
                                    severity = "information")
@@ -402,7 +396,7 @@ class FlowTask(Task):
                 return
             
         self.filename = ""
-        self.window.title = "Cytoflow"
+        self.window.title = "Cytoflow-GCB"
         
         # clear the workflow
         self.model.workflow = []
@@ -434,7 +428,7 @@ class FlowTask(Task):
         if dialog.open() == OK:
             self.open_file(dialog.path)
             self.filename = dialog.path
-            self.window.title = "Cytoflow - " + self.filename
+            self.window.title = "Cytoflow-GCB - " + self.filename
             
 
     def open_file(self, path):
@@ -471,12 +465,12 @@ class FlowTask(Task):
             
             except yaml.parser.ParserError as e:
                 error(None,
-                      "Parser error loading {} -- is it a Cytoflow file?\n\n{}"
+                      "Parser error loading {} -- is it a Cytoflow-GCB file?\n\n{}"
                       .format(path, str(e)))
                 return
             except Exception as e:
                 error(None,
-                      "{} loading {} -- is it a Cytoflow file?\n\n{}"
+                      "{} loading {} -- is it a Cytoflow-GCB file?\n\n{}"
                       .format(e.__class__.__name__, path, str(e)))
                 return
         
@@ -501,9 +495,9 @@ class FlowTask(Task):
                 
         if missing_tubes == len(wi.operation.tubes):
             warning(self.window.control,
-                    "Cytoflow couldn't find any of the FCS files from that "
+                    "Cytoflow-GCB couldn't find any of the FCS files from that "
                     "workflow.  If they've been moved, please open one FCS "
-                    "file to show Cytoflow where they've been moved to.")
+                    "file to show Cytoflow-GCB where they've been moved to.")
             
             dialog = FileDialog(parent = self.window.control, 
                                 action = 'open',
@@ -530,7 +524,7 @@ class FlowTask(Task):
                         
         elif missing_tubes > 0:
             warning(self.window.control,
-                    "Cytoflow couldn't find some of the FCS files from that "
+                    "Cytoflow-GCB couldn't find some of the FCS files from that "
                     "workflow.  You'll need to re-load them from the Import "
                     "operation.")
 
@@ -581,7 +575,7 @@ class FlowTask(Task):
             save_yaml(self.model.workflow, dialog.path)
             self.filename = dialog.path
             self.model.modified = False
-            self.window.title = "Cytoflow - " + self.filename
+            self.window.title = "Cytoflow-GCB - " + self.filename
             
     @on_trait_change('model.modified', post_init = True)
     def _on_model_modified(self, val):
@@ -1139,7 +1133,7 @@ class FlowTaskPlugin(Plugin):
     id = 'cytoflow'
 
     # The plugin's name (suitable for displaying to the user).
-    name = 'Cytoflow'
+    name = 'Cytoflow-GCB'
 
     ###########################################################################
     # Protected interface.
