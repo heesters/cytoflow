@@ -16,12 +16,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (PEP 440), eg 1.3.2.post20261116. Empty: base version + today''s date'
+        description: 'Version (PEP 440), eg 1.3.2. Empty: base version + today''s date'
         required: false
         default: ''
-  push:
-    branches:
-      - release-builds
 
 permissions:
   contents: write
