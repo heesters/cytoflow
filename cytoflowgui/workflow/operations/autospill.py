@@ -25,7 +25,7 @@ cytoflowgui.workflow.operations.autospill
 
 import warnings
 
-from traits.api import provides, Str, observe, List, Property, Float, Int
+from traits.api import provides, Str, observe, List, Property, Float, Int, Constant
 
 from cytoflow.operations.autospill import AutoSpillOp, AutoSpillQCView
 import cytoflow.utility as util
@@ -140,8 +140,8 @@ class AutoSpillWorkflowOp(CompensationWorkflowOp, AutoSpillOp):
 
 class AutoSpillQCWorkflowView(AutoSpillQCView):
     """GUI wrapper around AutoSpillQCView."""
-    id = 'cytoflow.views.autospill_qc'
-    friendly_id = 'AutoSpill QC'
+    id = Constant('cytoflow.views.autospill_qc')
+    friendly_id = Constant('AutoSpill QC')
 
     def plot(self, experiment, **kwargs):
         super().plot(experiment, **kwargs)
