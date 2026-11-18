@@ -23,12 +23,11 @@ cytoflowgui.workflow.operations.calcium_flux
 
 """
 
-from traits.api import provides, Str, Float, Bool, Instance
+from traits.api import provides, Str, Float
 
-from cytoflow.operations.calcium_flux import CalciumFluxOp, CalciumFluxView
+from cytoflow.operations.calcium_flux import CalciumFluxOp
 
-from ..views import IWorkflowView, WorkflowView
-from ..serialization import camel_registry, traits_str, cytoflow_class_repr, dedent
+from ..serialization import camel_registry, cytoflow_class_repr, dedent
 
 from .operation_base import IWorkflowOperation, WorkflowOperation
 
@@ -47,10 +46,11 @@ class CalciumFluxWorkflowOp(WorkflowOperation, CalciumFluxOp):
     bin_width = Float(2.0, apply=True)
 
     def default_view(self, **kwargs):
+        # Lazy import to avoid circular dependency with views package
+        from ..views.calcium_flux import CalciumFluxWorkflowView
         return CalciumFluxWorkflowView(op=self, **kwargs)
 
     def clear_estimate(self):
-        # CalciumFluxOp has no estimate step
         return
 
     def should_apply(self, changed, payload):
@@ -75,27 +75,6 @@ class CalciumFluxWorkflowOp(WorkflowOperation, CalciumFluxOp):
                 prev_idx=idx - 1))
 
 
-@provides(IWorkflowView)
-class CalciumFluxWorkflowView(WorkflowView, CalciumFluxView):
-    plot_params = Instance(object, ())
-
-    def should_plot(self, changed, payload):
-        from .. import Changed
-        if changed in (Changed.APPLY, Changed.PREV_RESULT):
-            return True
-        return False
-
-    def get_notebook_code(self, idx):
-        view = CalciumFluxView()
-        view.copy_traits(self, view.copyable_trait_names())
-
-        return dedent("""
-        op_{idx}.default_view({traits}).plot(ex_{idx})
-        """
-        .format(traits=traits_str(view),
-                idx=idx))
-
-
 ### Serialization
 @camel_registry.dumper(CalciumFluxWorkflowOp, 'calcium-flux', version=1)
 def _dump(op):
@@ -111,18 +90,3 @@ def _dump(op):
 @camel_registry.loader('calcium-flux', version=1)
 def _load(data, version):
     return CalciumFluxWorkflowOp(**data)
-
-
-@camel_registry.dumper(CalciumFluxWorkflowView, 'calcium-flux-view', version=1)
-def _dump_view(view):
-    return dict(op=view.op,
-                huefacet=view.huefacet,
-                rowfacet=view.rowfacet,
-                colfacet=view.colfacet,
-                show_error_band=view.show_error_band,
-                show_stimulation_line=view.show_stimulation_line)
-
-
-@camel_registry.loader('calcium-flux-view', version=1)
-def _load_view(data, version):
-    return CalciumFluxWorkflowView(**data)

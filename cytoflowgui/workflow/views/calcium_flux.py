@@ -21,10 +21,48 @@
 cytoflowgui.workflow.views.calcium_flux
 ---------------------------------------
 
-Re-exports the workflow view class defined in the operations module.
 """
 
-# CalciumFluxWorkflowView is defined alongside the workflow operation.
-from cytoflowgui.workflow.operations.calcium_flux import (  # noqa: F401
-    CalciumFluxWorkflowView,
-)
+from traits.api import provides, Instance
+
+from cytoflow.operations.calcium_flux import CalciumFluxView
+
+from .view_base import IWorkflowView, WorkflowView
+from ..serialization import camel_registry, traits_str, dedent
+
+
+@provides(IWorkflowView)
+class CalciumFluxWorkflowView(WorkflowView, CalciumFluxView):
+    plot_params = Instance(object, ())
+
+    def should_plot(self, changed, payload):
+        from .. import Changed
+        if changed in (Changed.APPLY, Changed.PREV_RESULT):
+            return True
+        return False
+
+    def get_notebook_code(self, idx):
+        view = CalciumFluxView()
+        view.copy_traits(self, view.copyable_trait_names())
+
+        return dedent("""
+        op_{idx}.default_view({traits}).plot(ex_{idx})
+        """
+        .format(traits=traits_str(view),
+                idx=idx))
+
+
+### Serialization
+@camel_registry.dumper(CalciumFluxWorkflowView, 'calcium-flux-view', version=1)
+def _dump_view(view):
+    return dict(op=view.op,
+                huefacet=view.huefacet,
+                rowfacet=view.rowfacet,
+                colfacet=view.colfacet,
+                show_error_band=view.show_error_band,
+                show_stimulation_line=view.show_stimulation_line)
+
+
+@camel_registry.loader('calcium-flux-view', version=1)
+def _load_view(data, version):
+    return CalciumFluxWorkflowView(**data)
