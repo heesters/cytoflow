@@ -80,7 +80,7 @@ jobs:
   build-macos:
     name: Build macOS app (arm64)
     needs: prepare
-    runs-on: macos-15
+    runs-on: macos-latest
     timeout-minutes: 360
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
