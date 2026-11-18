@@ -49,7 +49,7 @@ This view is associated with **Calcium Flux** operation and is available via
 """
 
 from traits.api import provides, List
-from traitsui.api import View, Item, EnumEditor, VGroup, CheckBoxEditor
+from traitsui.api import View, Item, EnumEditor, VGroup
 from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
 
