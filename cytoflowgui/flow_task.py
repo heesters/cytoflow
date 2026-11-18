@@ -288,20 +288,31 @@ class FlowTask(Task):
 
         
     def activated(self):
-        """ 
+        """
         Called after the task has been activated in a TaskWindow.  Initialize the
         model with an import operation and activate the central pane.
         """
-    
+
         # add the import op
         if not self.model.workflow:
-            self.handler.add_operation('cytoflow.operations.import') 
-    
+            self.handler.add_operation('cytoflow.operations.import')
+
         self.window.central_pane.activate()
-    
+
         self.model.modified = False
         self.undo_manager.clear()
-        
+
+        # Set up progress bar: watch WorkflowItem status changes and
+        # any operation-level status messages (e.g. UMAP log messages)
+        self.model.observe(self._on_workflow_status_changed,
+                           'workflow:items:status',
+                           dispatch='ui')
+        self.model.observe(self._on_workflow_status_changed,
+                           'workflow:items:operation:+status',
+                           dispatch='ui')
+        # Reflect the current state immediately (in case a file was loaded)
+        self._on_workflow_status_changed()
+
         if self.application.preferences_helper.first_run:
             self.application.preferences_helper.first_run = False
             
@@ -585,7 +596,49 @@ class FlowTask(Task):
         else:
             if self.window.title.endswith("*"):
                 self.window.title = self.window.title[:-1]
-        
+
+    def _on_workflow_status_changed(self, event=None):
+        """
+        Show or hide the indeterminate progress bar in the window status bar
+        whenever any WorkflowItem is in the "applying" or "estimating" state.
+        Also displays operation-level progress messages (e.g. from UMAP) when
+        available.
+        """
+        from pyface.qt import QtWidgets
+        win = self.window
+        if win is None or win.control is None:
+            return
+        statusbar = win.control.statusBar()
+
+        # Create the progress bar widget once and cache it on the window control
+        pb = getattr(win.control, '_gcb_progress_bar', None)
+        if pb is None:
+            pb = QtWidgets.QProgressBar()
+            pb.setMaximumWidth(200)
+            pb.setMaximumHeight(16)
+            pb.setRange(0, 0)   # indeterminate / busy mode
+            pb.setTextVisible(False)
+            statusbar.addPermanentWidget(pb)
+            win.control._gcb_progress_bar = pb
+
+        busy = any(item.status in ('applying', 'estimating')
+                   for item in self.model.workflow)
+        pb.setVisible(busy)
+
+        if busy:
+            # Show an operation-level progress message when one is available
+            # (e.g. UMAP / AutoSpill / PhenoGraph log messages routed back
+            # via the UMAPWorkflowOp.status Str trait)
+            msg = "Working…"
+            for item in self.model.workflow:
+                if item.status in ('applying', 'estimating'):
+                    op_status = getattr(item.operation, 'status', None)
+                    if op_status:
+                        msg = op_status
+                        break
+            statusbar.showMessage(msg)
+        else:
+            statusbar.clearMessage()
 
     def _undo_manager_default(self):
         return UndoManager(model = self.model)

@@ -221,6 +221,108 @@ def run_gui():
             return ctrl
         ApplicationWindow._create_control = _mac_create_control
 
+    # -------------------------------------------------------------------------
+    # Drag-and-drop FCS files onto the main window
+    # -------------------------------------------------------------------------
+
+    def _handle_fcs_drop(window, paths):
+        """Add dropped FCS files to the import operation (creates one if needed).
+        Deferred to the next event-loop tick so the window is fully set up."""
+        from pyface.qt import QtCore
+        QtCore.QTimer.singleShot(0, lambda: _do_fcs_drop(window, paths))
+
+    def _do_fcs_drop(window, paths):
+        app = window.application   # CytoflowApplication
+        if app is None:
+            return
+
+        workflow = getattr(app, 'model', None)
+        if workflow is None:
+            return
+
+        from cytoflowgui.workflow.operations.import_op import ImportWorkflowOp
+        from cytoflow.operations.import_op import Tube
+        from cytoflowgui.workflow.workflow_item import WorkflowItem
+
+        # find existing ImportWorkflowOp or create one
+        import_op = None
+        for item in workflow.workflow:
+            if isinstance(item.operation, ImportWorkflowOp):
+                import_op = item.operation
+                break
+
+        if import_op is None:
+            import_op = ImportWorkflowOp()
+            for path in paths:
+                import_op.tubes.append(Tube(file=path, conditions={}))
+            wi = WorkflowItem(operation=import_op)
+            workflow.workflow.append(wi)
+        else:
+            existing = {t.file for t in import_op.tubes}
+            for path in paths:
+                if path not in existing:
+                    import_op.tubes.append(Tube(file=path, conditions={}))
+                    existing.add(path)
+
+    # Patch ApplicationWindow._create_control to install drop support.
+    # We always do this (all platforms), chaining from whatever is currently set.
+    _orig_create_for_drop = ApplicationWindow._create_control
+
+    def _drop_create_control(self, parent):
+        ctrl = _orig_create_for_drop(self, parent)
+        ctrl.setAcceptDrops(True)
+
+        def dragEnterEvent(event):
+            urls = event.mimeData().urls() if event.mimeData().hasUrls() else []
+            if any(u.toLocalFile().lower().endswith('.fcs') for u in urls):
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+
+        def dropEvent(event):
+            paths = [u.toLocalFile() for u in event.mimeData().urls()
+                     if u.toLocalFile().lower().endswith('.fcs')]
+            if paths:
+                _handle_fcs_drop(self, paths)
+            event.acceptProposedAction()
+
+        ctrl.dragEnterEvent = dragEnterEvent
+        ctrl.dropEvent = dropEvent
+        return ctrl
+
+    ApplicationWindow._create_control = _drop_create_control
+
+    # macOS: also handle "Open With" / Dock-drag via QFileOpenEvent
+    if sys.platform == 'darwin':
+        from pyface.qt import QtGui as _QtGui, QtCore as _QtCore
+
+        _qapp_inst = _QtGui.QApplication.instance()
+        if _qapp_inst is not None:
+            _orig_qapp_event = _qapp_inst.__class__.event
+
+            def _qapp_event(self, e):
+                if e.type() == _QtCore.QEvent.FileOpen:
+                    path = e.file()
+                    if path.lower().endswith('.fcs'):
+                        # The window may not exist yet; use a generous delay.
+                        def _try_drop(p=path):
+                            from pyface.qt import QtGui as _Qg
+                            app_obj = _Qg.QApplication.instance()
+                            # Walk top-level widgets looking for an ApplicationWindow
+                            for widget in app_obj.topLevelWidgets():
+                                win = getattr(widget, '_pyface_window', None)
+                                if win is not None:
+                                    _handle_fcs_drop(win, [p])
+                                    return
+                        _QtCore.QTimer.singleShot(500, _try_drop)
+                return _orig_qapp_event(self, e)
+
+            _qapp_inst.__class__.event = _qapp_event
+
+    # -------------------------------------------------------------------------
+    # End drag-and-drop setup
+    # -------------------------------------------------------------------------
+
     # monkey patch pyface.image.image.ImageVolume to stop overwriting the
     # standard image libraries, which breaks Mac code signing
     
