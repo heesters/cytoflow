@@ -65,8 +65,8 @@ from pyface.api import ImageResource  # @UnresolvedImport
 
 from ..view_plugins import ViewHandler
 from ..editors import SubsetListEditor, ColorTextEditor, InstanceHandlerEditor
-from ..workflow.operations.calcium_flux import (CalciumFluxWorkflowOp,
-                                                CalciumFluxWorkflowView)
+from ..workflow.operations.calcium_flux import CalciumFluxWorkflowOp
+from ..workflow.views.calcium_flux import CalciumFluxWorkflowView
 from ..subset_controllers import subset_handler_factory
 
 from .i_op_plugin import IOperationPlugin, OP_PLUGIN_EXT

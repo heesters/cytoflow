@@ -54,7 +54,7 @@ from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
 
 from ..editors import ColorTextEditor
-from ..workflow.operations.calcium_flux import CalciumFluxWorkflowView
+from ..workflow.views.calcium_flux import CalciumFluxWorkflowView
 
 from .i_view_plugin import IViewPlugin, VIEW_PLUGIN_EXT
 from .view_plugin_base import ViewHandler, PluginHelpMixin
