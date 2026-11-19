@@ -120,8 +120,8 @@ Import FCS files and associate them with experimental conditions (metadata.)
 
 from traits.api import (Button, Property, cached_property, List,
                         Instance, provides, observe, Event)
-from traitsui.api import (View, Item, Controller, TextEditor, ButtonEditor, 
-                          HGroup, VGroup, Label)
+from traitsui.api import (View, Item, Controller, TextEditor, ButtonEditor,
+                          HGroup, VGroup, Label, EnumEditor)
 
 from envisage.api import Plugin
                        
@@ -135,17 +135,27 @@ from .op_plugin_base import OpHandler, PluginHelpMixin, shared_op_traits_view
 
 
 class ChannelHandler(Controller):
-    default_view = View(HGroup(Item('channel', style = 'readonly', show_label = False),
+    default_view = View(HGroup(Item('channel', style = 'readonly', show_label = False,
+                                    width = 80),
                                Item(label = '-->'),
                                Item('name',
-                                    editor = TextEditor(auto_set = False), 
-                                    show_label = False),
+                                    editor = TextEditor(auto_set = False),
+                                    show_label = False,
+                                    width = 80),
                                Item('label',
                                     editor = TextEditor(auto_set = False,
                                                         placeholder = "Axis label"),
                                     tooltip = "Free-text label used for plot axes; "
                                               "can contain spaces and punctuation",
-                                    show_label = False)))
+                                    show_label = False,
+                                    width = 100),
+                               Item('scale',
+                                    editor = EnumEditor(values = {'log': 'log',
+                                                                   'linear': 'linear',
+                                                                   'logicle': 'logicle'}),
+                                    tooltip = "Default scale for plots of this channel",
+                                    show_label = False,
+                                    width = 65)))
     
 
 class ImportHandler(OpHandler):

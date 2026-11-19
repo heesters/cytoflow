@@ -68,6 +68,18 @@ class ViewHandler(Controller):
         if self.model and not self.context.plot_names:
             self.model.current_plot = ""
 
+    def _apply_default_scale(self, channel_attr, scale_attr):
+        """Auto-apply the channel's default_scale from experiment metadata."""
+        if self.context is None or self.context.result is None:
+            return
+        channel = getattr(self.model, channel_attr, None)
+        if not channel:
+            return
+        meta = self.context.result.metadata.get(channel, {})
+        default_scale = meta.get('default_scale')
+        if default_scale:
+            setattr(self.model, scale_attr, default_scale)
+
     @observe('context.view_error_trait', dispatch = 'ui', post_init = True)
     def _view_trait_error(self, _):
         

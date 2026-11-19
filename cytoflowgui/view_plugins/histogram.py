@@ -81,7 +81,7 @@ hide each other (eg, 0.5).
                        huefacet = 'Dox').plot(ex)
 """
 
-from traits.api import provides, List
+from traits.api import provides, List, observe
 from traitsui.api import View, Item, EnumEditor, VGroup, TextEditor, Controller
 from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
@@ -121,6 +121,11 @@ class HistogramParamsHandler(Controller):
         
 
 class HistogramHandler(ViewHandler):
+
+    @observe('model.channel', post_init=True)
+    def _channel_changed(self, _):
+        self._apply_default_scale('channel', 'scale')
+
     view_traits_view = \
         View(VGroup(
              VGroup(Item('channel',

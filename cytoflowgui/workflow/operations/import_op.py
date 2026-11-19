@@ -49,12 +49,25 @@ class ValidPythonIdentifier(BaseCStr):
         self.error(obj, name, value)
         
 
+_LINEAR_PATTERNS = ('fsc', 'ssc', 'time', 'bead', 'width', 'area', 'height')
+
+
+def _default_scale(channel_name):
+    lower = channel_name.lower()
+    if any(p in lower for p in _LINEAR_PATTERNS):
+        return 'linear'
+    return 'log'
+
+
 class Channel(HasTraits):
     channel = String
     name = ValidPythonIdentifier
-    
+
     # free-text display label (used for axis titles); can contain any text
     label = Str
+
+    # default scale for plots of this channel
+    scale = Enum(['log', 'linear', 'logicle'], 'log')
   
 
 @provides(IWorkflowOperation)
@@ -81,7 +94,10 @@ class ImportWorkflowOp(WorkflowOperation, ImportOp):
         self.changed = 'channels_list'
         
     def reset_channels(self):
-        self.channels_list = [Channel(channel = x, name = util.sanitize_identifier(x)) for x in self.original_channels]
+        self.channels_list = [Channel(channel = x,
+                                      name = util.sanitize_identifier(x),
+                                      scale = _default_scale(x))
+                              for x in self.original_channels]
 
     def labels_from_markers(self):
         """
@@ -114,6 +130,10 @@ class ImportWorkflowOp(WorkflowOperation, ImportOp):
             self.ignore_v = list(self.channels.keys())
         self.ret_experiment = super().apply()
         self.ret_events = len(self.ret_experiment)
+        # store per-channel default scale in the experiment metadata
+        for c in self.channels_list:
+            if c.name in self.ret_experiment.metadata:
+                self.ret_experiment.metadata[c.name]['default_scale'] = c.scale
         
     def apply(self, *args, **kwargs):
         if 'metadata_only' in kwargs:
@@ -206,20 +226,32 @@ def _load_tube(data, version):
     return Tube(**data)
 
 
+@camel_registry.dumper(Channel, 'import-channel', version = 3)
+def _dump_channel_v3(channel):
+    return dict(channel = channel.channel,
+                name = channel.name,
+                label = channel.label,
+                scale = channel.scale)
+
 @camel_registry.dumper(Channel, 'import-channel', version = 2)
 def _dump_channel_v2(channel):
     return dict(channel = channel.channel,
                 name = channel.name,
                 label = channel.label)
-    
+
 @camel_registry.dumper(Channel, 'import-channel', version = 1)
 def _dump_channel(channel):
     return dict(channel = channel.channel,
                 name = channel.name)
-     
-     
+
+
 @camel_registry.loader('import-channel', version = 1)
 @camel_registry.loader('import-channel', version = 2)
-def _load_channel(data, version):
+def _load_channel_v1_v2(data, version):
+    data.setdefault('scale', _default_scale(data.get('channel', '')))
+    return Channel(**data)
+
+@camel_registry.loader('import-channel', version = 3)
+def _load_channel_v3(data, version):
     return Channel(**data)
 
