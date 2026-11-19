@@ -48,3 +48,4 @@ from .parallel_coords import ParallelCoordinatesPlugin
 from .radviz import RadvizPlugin
 from .export_fcs import ExportFCSPlugin
 from .calcium_flux import CalciumFluxViewPlugin
+from .figure_layout import FigureLayoutPlugin

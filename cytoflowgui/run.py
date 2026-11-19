@@ -63,6 +63,51 @@ def log_excepthook(typ, val, tb):
                   .format(typ, val, tb_str))
     
                          
+_MATPLOTLIB_DARK_PARAMS = {
+    'figure.facecolor':  '#1e1e1e',
+    'axes.facecolor':    '#1e1e1e',
+    'savefig.facecolor': '#1e1e1e',
+    'text.color':        '#dcdcdc',
+    'axes.labelcolor':   '#dcdcdc',
+    'xtick.color':       '#dcdcdc',
+    'ytick.color':       '#dcdcdc',
+    'axes.edgecolor':    '#555555',
+    'grid.color':        '#444444',
+    'legend.facecolor':  '#2d2d2d',
+    'legend.edgecolor':  '#555555',
+}
+
+
+def _detect_dark_mode_early():
+    """Detect OS dark mode before QApplication is created.
+
+    Uses platform-native APIs so the remote process can be started with
+    the correct matplotlib style before Qt is set up.
+    """
+    try:
+        if sys.platform == 'darwin':
+            import subprocess
+            r = subprocess.run(['defaults', 'read', '-g', 'AppleInterfaceStyle'],
+                               capture_output=True, text=True, timeout=1)
+            return r.returncode == 0 and r.stdout.strip().lower() == 'dark'
+        elif sys.platform == 'win32':
+            import winreg
+            key = winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER,
+                r'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize')
+            val, _ = winreg.QueryValueEx(key, 'AppsUseLightTheme')
+            return val == 0
+        else:  # Linux / other
+            import subprocess
+            r = subprocess.run(
+                ['gsettings', 'get', 'org.gnome.desktop.interface', 'color-scheme'],
+                capture_output=True, text=True, timeout=1)
+            return 'dark' in r.stdout.lower()
+    except Exception:
+        pass
+    return False
+
+
 def _apply_theme(qapp):
     """
     Apply a light or dark Fusion palette matching the OS system theme, and
@@ -102,20 +147,8 @@ def _apply_theme(qapp):
                    QtGui.QPalette.ColorRole.Text,       c(127, 127, 127))
         qapp.setPalette(p)
 
-        # Matplotlib dark style
-        matplotlib.rcParams.update({
-            'figure.facecolor':  '#1e1e1e',
-            'axes.facecolor':    '#1e1e1e',
-            'savefig.facecolor': '#1e1e1e',
-            'text.color':        '#dcdcdc',
-            'axes.labelcolor':   '#dcdcdc',
-            'xtick.color':       '#dcdcdc',
-            'ytick.color':       '#dcdcdc',
-            'axes.edgecolor':    '#555555',
-            'grid.color':        '#444444',
-            'legend.facecolor':  '#2d2d2d',
-            'legend.edgecolor':  '#555555',
-        })
+        # Matplotlib dark style (main process — for export_task etc.)
+        matplotlib.rcParams.update(_MATPLOTLIB_DARK_PARAMS)
     else:
         # Keep matplotlib defaults (white background)
         pass
@@ -162,10 +195,14 @@ def run_gui():
     parser.add_argument("filename", nargs='?', default = "")
     
     args = parser.parse_args()
-    
+
+    # detect dark mode before QApplication exists so the remote process
+    # can be started with the right matplotlib style
+    _early_dark = _detect_dark_mode_early()
+
     # start the remote process
 
-    remote_process, remote_workflow_connection, remote_canvas_connection, queue_listener = start_remote_process()
+    remote_process, remote_workflow_connection, remote_canvas_connection, queue_listener = start_remote_process(is_dark=_early_dark)
     
     # getting real tired of the matplotlib deprecation warnings
     import warnings
@@ -535,15 +572,15 @@ def monitor_remote_process(proc):
         logging.error("Remote process exited with {}".format(proc.exitcode))
     
 
-def start_remote_process():
+def start_remote_process(is_dark=False):
     """
-    Start the remote process.  Creates pipes and synchronization primitives, 
+    Start the remote process.  Creates pipes and synchronization primitives,
     sets up logging, and starts the remote process and the monitoring thread.
     """
 
     # communications channels
-    
-    parent_workflow_conn, child_workflow_conn = multiprocessing.Pipe()  
+
+    parent_workflow_conn, child_workflow_conn = multiprocessing.Pipe()
     parent_mpl_conn, child_matplotlib_conn = multiprocessing.Pipe()
     running_event = multiprocessing.Event()
 
@@ -555,7 +592,7 @@ def start_remote_process():
         logger = logging.getLogger(record.name)
         if logger.isEnabledFor(record.levelno):
             logger.handle(record)
-            
+
     handler = CallbackHandler(handle)
     queue_listener = QueueListener(log_q, handler)
     queue_listener.start()
@@ -565,7 +602,8 @@ def start_remote_process():
                                              args = [parent_workflow_conn,
                                                      parent_mpl_conn,
                                                      log_q,
-                                                     running_event])
+                                                     running_event,
+                                                     is_dark])
     
     remote_process.daemon = True
     remote_process.start() 
@@ -580,7 +618,8 @@ def start_remote_process():
     return (remote_process, child_workflow_conn, child_matplotlib_conn, queue_listener)
  
 
-def remote_main(parent_workflow_conn, parent_mpl_conn, log_q, running_event):
+def remote_main(parent_workflow_conn, parent_mpl_conn, log_q, running_event,
+                is_dark=False):
     """
     The main method for the remote process. Configures logging, sets up
     the matplotlib backend, and instantiates the `RemoteWorkflow`.
@@ -623,6 +662,9 @@ def remote_main(parent_workflow_conn, parent_mpl_conn, log_q, running_event):
     
     import matplotlib
     matplotlib.use('module://cytoflowgui.matplotlib_backend_remote')
+
+    if is_dark:
+        matplotlib.rcParams.update(_MATPLOTLIB_DARK_PARAMS)
 
     # install a global (gui) error handler for traits notifications
         

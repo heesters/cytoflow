@@ -60,6 +60,28 @@ class EasyPolygonSelector(PolygonSelector):
 
     def _press(self, event):
         self._swallow_release = False
+
+        # Right-click on a completed polygon vertex: remove it.
+        # (macOS two-finger click also sends button 3.)
+        if (event.button == 3
+                and self._selection_completed
+                and event.xdata is not None
+                and event.ydata is not None):
+            unique = list(self._xys[:-1])      # _xys[-1] closes polygon back to [0]
+            if len(unique) > 3:                 # keep at least a triangle
+                verts_disp = self.ax.transData.transform(unique)
+                click_disp = self.ax.transData.transform(
+                    [(event.xdata, event.ydata)])[0]
+                dists = np.hypot(verts_disp[:, 0] - click_disp[0],
+                                 verts_disp[:, 1] - click_disp[1])
+                nearest = int(np.argmin(dists))
+                if dists[nearest] < 10:         # within 10 screen pixels
+                    new_verts = [v for i, v in enumerate(unique) if i != nearest]
+                    self._xys = new_verts + [new_verts[0]]
+                    self._draw_polygon()
+                    self.onselect(list(self._xys[:-1]))
+            return
+
         if (getattr(event, 'dblclick', False)
                 and not self._selection_completed
                 and self._active_handle_idx < 0):

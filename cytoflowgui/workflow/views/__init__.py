@@ -41,4 +41,5 @@ from .export_fcs import ExportFCSWorkflowView
 from .matrix import MatrixWorkflowView, MatrixPlotParams
 from .mst import MSTWorkflowView, MSTPlotParams
 from .calcium_flux import CalciumFluxWorkflowView
+from .figure_layout import FigureLayoutWorkflowView
 
