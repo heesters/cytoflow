@@ -35,6 +35,9 @@ from .freehand import FreehandWorkflowOp, FreehandSelectionView, FreehandPlotPar
 
 from .channel_stat import ChannelStatisticWorkflowOp
 from .gate_stat import GateStatisticWorkflowOp
+from .gate_freq_test import GateFrequencyTestWorkflowOp
+from .fold_change import FoldChangeWorkflowOp
+from .time_gate import TimeGateWorkflowOp, TimeGateSelectionView
 from .multi_channel_stat import MultiChannelStatisticWorkflowOp, Function as MultiChannelStatisticFunction
 from .xform_stat import TransformStatisticWorkflowOp
 from .merge_stat import MergeStatisticsWorkflowOp

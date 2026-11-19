@@ -56,6 +56,9 @@ from .register import RegistrationOp
 # statistics
 from .channel_stat import ChannelStatisticOp
 from .gate_stat import GateStatisticOp
+from .gate_freq_test import GateFrequencyTestOp
+from .fold_change import FoldChangeOp
+from .time_gate import TimeGateOp
 from .frame_stat import FrameStatisticOp
 from .xform_stat import TransformStatisticOp
 from .stat_test import StatisticalTestOp

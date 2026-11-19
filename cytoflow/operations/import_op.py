@@ -42,6 +42,10 @@ import warnings, math
 from traits.api import (HasTraits, HasStrictTraits, provides, Str, List, Any,
                         Dict, File, Constant, Enum, Int)
 
+# FCS 3.2 support: fcsparser already handles FCS 3.2 files — it reads the
+# version string without validating it, supports $DATATYPE=='D' (64-bit doubles),
+# and defaults to UTF-8 for the TEXT segment (also the FCS 3.2 standard).
+# No code changes are needed to read FCS 3.2 files.
 from fcsparser import fcsparser
 import numpy as np
 import pandas as pd

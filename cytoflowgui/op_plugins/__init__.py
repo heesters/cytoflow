@@ -44,6 +44,8 @@ from .quad import QuadPlugin
 from .hierarchy import HierarchyPlugin
 from .category import CategoryPlugin
 from .boolean_gate import BooleanGatePlugin
+from .time_gate import TimeGatePlugin
+from .doublet_gate import DoubletGatePlugin
 
 # statistics and transformations
 from .channel_stat import ChannelStatisticPlugin
