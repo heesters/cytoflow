@@ -34,6 +34,7 @@ from .ellipse import EllipseWorkflowOp, EllipseSelectionView, EllipsePlotParams
 from .freehand import FreehandWorkflowOp, FreehandSelectionView, FreehandPlotParams
 
 from .channel_stat import ChannelStatisticWorkflowOp
+from .gate_stat import GateStatisticWorkflowOp
 from .multi_channel_stat import MultiChannelStatisticWorkflowOp, Function as MultiChannelStatisticFunction
 from .xform_stat import TransformStatisticWorkflowOp
 from .merge_stat import MergeStatisticsWorkflowOp

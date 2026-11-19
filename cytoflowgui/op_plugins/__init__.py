@@ -47,6 +47,7 @@ from .boolean_gate import BooleanGatePlugin
 
 # statistics and transformations
 from .channel_stat import ChannelStatisticPlugin
+from .gate_stat import GateStatisticPlugin
 from .multi_channel_stat import MultiChannelStatisticPlugin
 from .xform_stat import TransformStatisticPlugin
 from .merge_stat import MergeStatisticsPlugin

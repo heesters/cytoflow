@@ -122,6 +122,9 @@ class WorkflowItemHandler(Controller):
 
     previous_channels = Property(observe = "model.previous_wi.channels")
     """The channels in the previous `WorkflowItem.result`"""
+
+    previous_bool_conditions_names = Property(observe = "model.previous_wi.conditions")
+    """Names of boolean conditions in the previous `WorkflowItem.result`"""
     
     tree_node = Property(observe = "[model.channels,model.metadata,model.conditions,model.statistics]")
 
@@ -301,7 +304,14 @@ class WorkflowItemHandler(Controller):
         if self.model and self.model.previous_wi and self.model.previous_wi.channels:
             return natsorted(self.model.previous_wi.channels)
         else:
-            return [] 
+            return []
+
+    # MAGIC: gets value for property "previous_bool_conditions_names"
+    def _get_previous_bool_conditions_names(self):
+        if self.model and self.model.previous_wi and self.model.previous_wi.conditions:
+            return natsorted([k for k, v in self.model.previous_wi.conditions.items()
+                              if v == 'bool'])
+        return []
 
 
 class WorkflowController(Controller):
