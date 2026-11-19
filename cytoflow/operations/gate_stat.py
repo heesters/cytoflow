@@ -108,22 +108,22 @@ class GateStatisticOp(HasStrictTraits):
                 f"Gate '{self.gate}' not found in the experiment. "
                 f"Available conditions: {sorted(experiment.conditions.keys())}")
 
-        if experiment.conditions[self.gate] != 'bool':
+        if experiment.conditions[self.gate].dtype.kind != 'b':
             raise util.CytoflowOpError(
                 'gate',
                 f"Gate '{self.gate}' must be a boolean condition (True/False), "
-                f"but it has type '{experiment.conditions[self.gate]}'.")
+                f"but it has dtype '{experiment.conditions[self.gate].dtype}'.")
 
         for p in self.parent:
             if p not in experiment.conditions:
                 raise util.CytoflowOpError(
                     'parent',
                     f"Parent gate '{p}' not found in the experiment.")
-            if experiment.conditions[p] != 'bool':
+            if experiment.conditions[p].dtype.kind != 'b':
                 raise util.CytoflowOpError(
                     'parent',
                     f"Parent gate '{p}' must be a boolean condition, "
-                    f"but it has type '{experiment.conditions[p]}'.")
+                    f"but it has dtype '{experiment.conditions[p].dtype}'.")
 
         if not self.by:
             raise util.CytoflowOpError(

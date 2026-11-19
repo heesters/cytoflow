@@ -41,7 +41,7 @@ shown in grey.
 
 from traits.api import provides, List, observe
 from traitsui.api import (View, Item, EnumEditor, VGroup, CheckListEditor,
-                           ColorTextEditor, Controller)
+                           Controller)
 from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
 

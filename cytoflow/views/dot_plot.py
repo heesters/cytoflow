@@ -89,7 +89,7 @@ class DotPlotView(Base2DView):
                                        index=experiment.data.index,
                                        dtype=object)
         for i, pop in enumerate(self.populations):
-            if pop in experiment.conditions and experiment.conditions[pop] == 'bool':
+            if pop in experiment.conditions and experiment.conditions[pop].dtype.kind == 'b':
                 mask = experiment.data[pop].astype(bool)
                 self._color_series[mask] = _OKABE_ITO[i % len(_OKABE_ITO)]
 
@@ -110,7 +110,7 @@ class DotPlotView(Base2DView):
 
         legend_handles = {}
         for i, pop in enumerate(self.populations):
-            if pop in experiment.conditions and experiment.conditions[pop] == 'bool':
+            if pop in experiment.conditions and experiment.conditions[pop].dtype.kind == 'b':
                 from matplotlib.lines import Line2D
                 legend_handles[pop] = Line2D([0], [0], marker='o', color='w',
                                              markerfacecolor=_OKABE_ITO[i % len(_OKABE_ITO)],

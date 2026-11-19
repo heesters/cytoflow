@@ -92,7 +92,7 @@ class GateFrequencyTestOp(HasStrictTraits):
             raise util.CytoflowOpError('gate',
                 f"Gate '{self.gate}' not found in the experiment.")
 
-        if experiment.conditions[self.gate] != 'bool':
+        if experiment.conditions[self.gate].dtype.kind != 'b':
             raise util.CytoflowOpError('gate',
                 f"Gate '{self.gate}' must be a boolean condition.")
 
@@ -100,7 +100,7 @@ class GateFrequencyTestOp(HasStrictTraits):
             if p not in experiment.conditions:
                 raise util.CytoflowOpError('parent',
                     f"Parent gate '{p}' not found in the experiment.")
-            if experiment.conditions[p] != 'bool':
+            if experiment.conditions[p].dtype.kind != 'b':
                 raise util.CytoflowOpError('parent',
                     f"Parent gate '{p}' must be a boolean condition.")
 

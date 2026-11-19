@@ -104,8 +104,6 @@ class StatsDockPane(TraitsDockPane):
         layout.addWidget(self._placeholder)
         self._placeholder.hide()
 
-        self.control = container
-
         # ---- observe model changes ------------------------------------
         if self.model:
             self.model.observe(self._on_selected_changed,

@@ -141,6 +141,11 @@ from .views.parallel_coords import ParallelCoordinatesView
 
 from .views.export_fcs import ExportFCS
 
+from .views.contour import ContourView
+from .views.dot_plot import DotPlotView
+from .views.overlay_histogram import OverlayHistogramView
+from .views.figure_layout import FigureLayoutView, FigurePanel
+
 # util
 from .utility.util_functions import (geom_mean, geom_sd, geom_sem)
 from .utility.algorithms import (ci, percentiles)

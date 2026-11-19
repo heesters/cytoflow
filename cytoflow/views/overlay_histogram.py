@@ -115,7 +115,7 @@ class OverlayHistogramView(BaseDataView):
                 raise util.CytoflowViewError('populations',
                                              "Population '{}' not in experiment"
                                              .format(pop))
-            if experiment.conditions[pop] != 'bool':
+            if experiment.conditions[pop].dtype.kind != 'b':
                 raise util.CytoflowViewError('populations',
                                              "Population '{}' must be a boolean condition"
                                              .format(pop))

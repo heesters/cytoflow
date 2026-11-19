@@ -79,8 +79,6 @@ class PopulationTreeDockPane(TraitsDockPane):
         layout.addWidget(self._placeholder)
         self._placeholder.hide()
 
-        self.control = container
-
         if self.model:
             self.model.observe(self._on_selected_changed,
                                'selected', dispatch='ui')
