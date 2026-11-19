@@ -113,6 +113,9 @@ import sys, threading, logging
 
 from queue import Queue, PriorityQueue
 
+import numpy as np
+import pandas as pd
+
 from traits.api import (HasStrictTraits, Int, Bool, Instance, Any, List,
                         observe, ComparisonMode)
 
@@ -124,6 +127,81 @@ from cytoflowgui.utility import log_exception
 from .workflow_item import WorkflowItem
 from .views import IWorkflowView
 from . import Changed
+
+
+def _compute_auto_gate_stats(experiment):
+    """Compute gate frequencies for all boolean conditions in experiment.
+
+    Returns a DataFrame with columns Gate, <group conditions>, Count,
+    % Total, and % Parent, or None if there are no boolean gates.
+    """
+    if experiment is None:
+        return None
+
+    bool_conds = [k for k, v in experiment.conditions.items()
+                  if isinstance(v, pd.Series) and v.dtype.kind == 'b']
+    if not bool_conds:
+        return None
+
+    group_conds = [k for k, v in experiment.conditions.items()
+                   if not (isinstance(v, pd.Series) and v.dtype.kind == 'b')]
+
+    # infer parent chain: for each gate, the most recently-added boolean
+    # condition before it in experiment.history
+    parent_map = {}
+    seen_bool = []
+    for op in experiment.history:
+        gate_name = getattr(op, 'name', None)
+        if gate_name and gate_name in bool_conds:
+            parent_map[gate_name] = seen_bool[-1] if seen_bool else None
+            seen_bool.append(gate_name)
+    for bc in bool_conds:
+        if bc not in parent_map:
+            parent_map[bc] = None
+
+    data = experiment.data
+    rows = []
+
+    if group_conds:
+        try:
+            groupby = data.groupby(group_conds, observed=True)
+            groups = [(k, g) for k, g in groupby]
+        except Exception:
+            groups = None
+    else:
+        groups = None
+
+    for gate in bool_conds:
+        parent = parent_map.get(gate)
+        try:
+            if groups is None:
+                total = len(data)
+                gc = int(data[gate].astype(bool).sum())
+                pc = int(data[parent].astype(bool).sum()) if parent else total
+                rows.append({'Gate': gate, 'Count': gc,
+                             '% Total': 100.0 * gc / total if total > 0 else np.nan,
+                             '% Parent': 100.0 * gc / pc if pc > 0 else np.nan})
+            else:
+                for group_key, group_data in groups:
+                    total = len(group_data)
+                    gc = int(group_data[gate].astype(bool).sum())
+                    pc = int(group_data[parent].astype(bool).sum()) if parent else total
+                    key_dict = dict(zip(group_conds, group_key) if isinstance(group_key, tuple)
+                                    else [(group_conds[0], group_key)])
+                    rows.append({'Gate': gate, **key_dict, 'Count': gc,
+                                 '% Total': 100.0 * gc / total if total > 0 else np.nan,
+                                 '% Parent': 100.0 * gc / pc if pc > 0 else np.nan})
+        except Exception:
+            pass
+
+    if not rows:
+        return None
+
+    df = pd.DataFrame(rows)
+    # put Gate first, then group cols, then stats
+    stat_cols = ['Count', '% Total', '% Parent']
+    other_cols = [c for c in df.columns if c not in stat_cols]
+    return df[other_cols + stat_cols]
 
 logger = logging.getLogger(__name__)
 
@@ -1017,7 +1095,8 @@ class RemoteWorkflow(HasStrictTraits):
             wi.channels = list(wi.result.channels)
             wi.conditions = dict(wi.result.conditions)
             wi.statistics = dict(wi.result.statistics)
-  
+            wi.auto_gate_stats = _compute_auto_gate_stats(wi.result)
+
             # some things in metadata are unpicklable, functions and such,
             # so filter them out.
             wi.metadata = filter_unpicklable(dict(wi.result.metadata))

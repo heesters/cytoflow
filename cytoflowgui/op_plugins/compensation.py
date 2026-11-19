@@ -81,14 +81,13 @@ raw values for an event and :math:`S_{ij}` is the fraction of channel
 '''
 
 from traits.api import provides, List
-from traitsui.api import (View, Item, VGroup, ButtonEditor, FileEditor,
-                          TableEditor, ObjectColumn, TextEditor)
+from traitsui.api import (View, Item, VGroup, ButtonEditor, FileEditor)
 
 from envisage.api import Plugin
 from pyface.api import ImageResource  # @UnresolvedImport
 
 from ..view_plugins import ViewHandler
-from ..editors import ColorTextEditor
+from ..editors import ColorTextEditor, SpilloverMatrixEditor
 from ..workflow.operations import CompensationWorkflowOp, CompensationWorkflowView
 
 from .i_op_plugin import IOperationPlugin, OP_PLUGIN_EXT
@@ -109,22 +108,9 @@ class CompensationHandler(OpHandler):
                      show_label = False),
                 VGroup(
                     Item('spillover_list',
-                         editor = TableEditor(columns = [ObjectColumn(name = 'from_channel',
-                                                                      label = "From",
-                                                                      editable = False),
-                                                         ObjectColumn(name = 'to_channel',
-                                                                      label = "To",
-                                                                      editable = False),
-                                                         ObjectColumn(name = 'spillover',
-                                                                      label = "Spillover",
-                                                                      editor = TextEditor(evaluate = float,
-                                                                                          auto_set = False))],
-                                              rows = 8,
-                                              editable = True,
-                                              sortable = False,
-                                              auto_size = True,
-                                              configurable = False),
-                         show_label = False),
+                         editor = SpilloverMatrixEditor(),
+                         show_label = False,
+                         height = 220),
                     label = "Spillover Matrix",
                     show_border = False),
                 shared_op_traits_view))

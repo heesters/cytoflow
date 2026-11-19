@@ -50,6 +50,8 @@ from .doublet_gate import DoubletGatePlugin
 # statistics and transformations
 from .channel_stat import ChannelStatisticPlugin
 from .gate_stat import GateStatisticPlugin
+from .gate_freq_test import GateFrequencyTestPlugin
+from .fold_change import FoldChangePlugin
 from .multi_channel_stat import MultiChannelStatisticPlugin
 from .xform_stat import TransformStatisticPlugin
 from .merge_stat import MergeStatisticsPlugin

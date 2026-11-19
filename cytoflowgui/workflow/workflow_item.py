@@ -96,7 +96,10 @@ class WorkflowItem(HasStrictTraits):
     
     statistics = Dict(Str, pd.DataFrame, status = True)
     """The statistics from `result`"""
-    
+
+    auto_gate_stats = Any(status = True)
+    """Auto-computed gate frequencies DataFrame (gate × sample group), None if no gates"""
+
     default_view = Property(Instance('cytoflowgui.workflow.views.IWorkflowView'), observe = 'operation')
     """The default view for this workflow item (if any)"""
     
