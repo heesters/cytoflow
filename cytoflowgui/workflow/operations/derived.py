@@ -38,6 +38,9 @@ class DerivedParameterWorkflowOp(WorkflowOperation, DerivedParameterOp):
     name = Str(apply = True)
     expression = Str(apply = True)
 
+    def default_view(self, **kwargs):
+        return None
+
     def clear_estimate(self):
         # no-op
         return

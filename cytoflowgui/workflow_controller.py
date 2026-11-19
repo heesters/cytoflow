@@ -210,7 +210,10 @@ class WorkflowItemHandler(Controller):
         return plugin.get_handler(model = op, context = self.model)
     
     def _get_view_handler(self, view):
-        plugin = next((x for x in self.view_plugins + self.op_plugins if view.id == x.view_id))
+        plugin = next((x for x in self.view_plugins + self.op_plugins
+                       if getattr(x, 'view_id', None) == view.id), None)
+        if plugin is None:
+            return None
         return plugin.get_handler(model = view, context = self.model)
 
 

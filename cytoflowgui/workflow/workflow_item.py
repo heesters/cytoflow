@@ -209,9 +209,13 @@ class WorkflowItem(HasStrictTraits):
     @cached_property
     def _get_default_view(self):
         try:
-            return self.operation.default_view()
+            view = self.operation.default_view()
         except AttributeError:
             return None
+        from cytoflowgui.workflow.views.view_base import IWorkflowView
+        if view is None or not isinstance(view, IWorkflowView):
+            return None
+        return view
         
         
     @observe('[result,current_view.+type]')

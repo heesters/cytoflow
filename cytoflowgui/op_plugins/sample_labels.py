@@ -135,6 +135,7 @@ class SampleLabelsPlugin(Plugin, PluginHelpMixin):
 
     id = 'cytoflowgui.op_plugins.sample_labels'
     operation_id = 'cytoflow.operations.sample_labels'
+    view_id = None
 
     short_name = name = "Sample Labels"
     menu_group = "TOP"

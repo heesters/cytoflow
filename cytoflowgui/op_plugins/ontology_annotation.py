@@ -230,6 +230,7 @@ class OntologyAnnotationPlugin(Plugin, PluginHelpMixin):
 
     id = 'cytoflowgui.op_plugins.ontology_annotation'
     operation_id = 'cytoflow.operations.ontology_annotation'
+    view_id = None
 
     short_name = name = "Cell Ontology"
     menu_group = "TOOLS"

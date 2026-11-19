@@ -38,6 +38,9 @@ class SampleLabelsWorkflowOp(WorkflowOperation, SampleLabelsOp):
     labels = Dict(Str, Str, apply=True)
     new_condition = Str("", apply=True)
 
+    def default_view(self, **kwargs):
+        return None
+
     def clear_estimate(self):
         pass
 
