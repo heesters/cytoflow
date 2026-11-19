@@ -42,4 +42,7 @@ from .matrix import MatrixWorkflowView, MatrixPlotParams
 from .mst import MSTWorkflowView, MSTPlotParams
 from .calcium_flux import CalciumFluxWorkflowView
 from .figure_layout import FigureLayoutWorkflowView
+from .contour import ContourWorkflowView, ContourPlotParams
+from .overlay_histogram import OverlayHistogramWorkflowView, OverlayHistogramPlotParams
+from .dot_plot import DotPlotWorkflowView, DotPlotParams
 

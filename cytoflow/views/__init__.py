@@ -240,3 +240,6 @@ from .parallel_coords import ParallelCoordinatesView
 from .export_fcs import ExportFCS
 from .calcium_flux import CalciumFluxView
 from .figure_layout import FigureLayoutView, FigurePanel
+from .contour import ContourView
+from .overlay_histogram import OverlayHistogramView
+from .dot_plot import DotPlotView

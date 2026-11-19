@@ -49,3 +49,6 @@ from .radviz import RadvizPlugin
 from .export_fcs import ExportFCSPlugin
 from .calcium_flux import CalciumFluxViewPlugin
 from .figure_layout import FigureLayoutPlugin
+from .contour import ContourPlugin
+from .overlay_histogram import OverlayHistogramPlugin
+from .dot_plot import DotPlotPlugin
