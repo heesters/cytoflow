@@ -232,10 +232,17 @@ class WorkflowItemHandler(Controller):
     # MAGIC: gets value for property "icon"
     def _get_icon(self):
         if self.model.status == "valid":
+            plugin = next((x for x in self.op_plugins
+                           if getattr(x, 'operation_id', None) == self.model.operation.id), None)
+            if plugin is not None:
+                try:
+                    return plugin.get_icon().create_icon()
+                except Exception:
+                    pass
             return 'ok'
-        elif self.model.status == "estimating" or self.model.status == "applying":
+        elif self.model.status in ("estimating", "applying"):
             return 'refresh'
-        else: # self.model.status == "invalid" or None
+        else:
             return 'error'
         
     # MAGIC: gets value for property "conditions"

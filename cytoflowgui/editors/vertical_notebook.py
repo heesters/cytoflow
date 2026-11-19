@@ -37,30 +37,37 @@ from pyface.qt import QtGui, QtCore
 from pyface.api import ImageResource  # @UnresolvedImport
 
 from traits.api import (HasTraits, HasPrivateTraits, Instance, List, Str, Bool,
-                        Property, Any, cached_property, on_trait_change)
+                        Property, Any, cached_property, on_trait_change, Union)
 
 from traitsui.api import UI, Editor
 
 
 class _ActivatableButton(QtGui.QCommandLinkButton):
-    """QCommandLinkButton that fires a double-click callback."""
+    """QCommandLinkButton with double-click and Enter-key support for opening the default view."""
 
     def __init__(self, page, parent=None):
         super().__init__(parent)
         self._page = page
 
-    def mouseDoubleClickEvent(self, event):
+    def _activate_default_view(self):
         page = self._page
-        # make sure the page is open (selected)
         if not page.is_open:
             page.notebook.open(page)
-        # then activate the default view through the workflow controller
         try:
             handler = page.notebook.editor.ui.handler
             if hasattr(handler, 'activate_view'):
                 handler.activate_view('default')
         except Exception:
             pass
+
+    def mouseDoubleClickEvent(self, event):
+        self._activate_default_view()
+
+    def keyPressEvent(self, event):
+        if event.key() in (QtCore.Qt.Key.Key_Return, QtCore.Qt.Key.Key_Enter):
+            self._activate_default_view()
+        else:
+            super().keyPressEvent(event)
 
 class VerticalNotebookPage(HasPrivateTraits):
     """ 
@@ -93,8 +100,8 @@ class VerticalNotebookPage(HasPrivateTraits):
     description_object_trait = Str
     """The name of the *description_object* trait that signals a page description change"""
 
-    icon = Str('ok')
-    """The icon for the page button -- a Str that is the name of an ImageResource"""
+    icon = Any('ok')
+    """The icon for the page button -- a Str name or a QIcon object"""
 
     icon_object = Instance(HasTraits)
     """The HasTraits object whose trait we look at to set the page icon"""
@@ -341,10 +348,22 @@ class VerticalNotebookPage(HasPrivateTraits):
         if self.cmd_button:
             self.cmd_button.setDescription(description)
 
+    _STATUS_BORDER = {
+        'ok':      '',
+        'error':   'QCommandLinkButton { border-left: 3px solid #e53935; }',
+        'refresh': 'QCommandLinkButton { border-left: 3px solid #FB8C00; }',
+    }
+
     @on_trait_change('icon', dispatch = 'ui')
     def _on_icon_changed(self, icon):
-        if self.cmd_button:
+        if not self.cmd_button:
+            return
+        if isinstance(icon, QtGui.QIcon):
+            self.cmd_button.setIcon(icon)
+            self.cmd_button.setStyleSheet('')
+        elif icon:
             self.cmd_button.setIcon(ImageResource(icon).create_icon())
+            self.cmd_button.setStyleSheet(self._STATUS_BORDER.get(icon, ''))
         
     @on_trait_change('deletable', dispatch = 'ui')
     def _on_deletable_changed(self, deletable):
