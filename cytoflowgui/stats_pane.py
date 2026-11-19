@@ -17,7 +17,10 @@ for every boolean gate in the workflow, automatically updated as the
 analysis runs.  This mirrors the FlowJo statistics table.
 """
 
+import math
 import logging
+
+import numpy as np
 
 from traits.api import Instance, observe
 from pyface.tasks.api import TraitsDockPane  # @UnresolvedImport
@@ -232,7 +235,6 @@ def _bold_font():
 
 
 def _fmt_item(val, stat_col):
-    import math, numpy as np
     if val is None or (isinstance(val, float) and math.isnan(val)):
         txt = '—'
     elif stat_col == 'Count':

@@ -627,16 +627,15 @@ class VerticalNotebook(HasPrivateTraits):
         if from_idx == to_idx:
             return
         if self.editor is not None:
-            # Reorder the editor's underlying list — this fires update_editor
-            # via the trait observer, which rebuilds pages automatically.
             value = self.editor.value
             if from_idx >= len(value) or to_idx >= len(value):
                 return
-            item = value[from_idx]
-            # Perform atomic move: remove then insert
-            del value[from_idx]
+            # Build new order atomically to avoid intermediate-state notifications
+            new_list = list(value)
+            item = new_list.pop(from_idx)
             insert_at = to_idx if to_idx < from_idx else to_idx - 1
-            value.insert(insert_at, item)
+            new_list.insert(insert_at, item)
+            value[:] = new_list
 
     #-- Trait Event Handlers -------------------------------------------------
 

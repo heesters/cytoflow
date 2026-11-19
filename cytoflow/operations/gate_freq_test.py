@@ -214,14 +214,14 @@ class GateFrequencyTestOp(HasStrictTraits):
         new_experiment.statistics[self.name] = result
 
         # Also store per-pair values for plotting
+        by_cols = ({b: common.get_level_values(b) for b in self.by}
+                   if len(self.by) > 1
+                   else {self.by[0]: list(common)})
         pairs_df = pd.DataFrame({
-            **{b: common.get_level_values(b) if len(self.by) > 1
-               else common for b in self.by},
+            **by_cols,
             self.condition_a: a_vals.loc[common].to_numpy(dtype=float),
             self.condition_b: b_vals.loc[common].to_numpy(dtype=float),
         })
-        if len(self.by) == 1:
-            pairs_df[self.by[0]] = list(common)
         new_experiment.statistics[self.name + '_Pairs'] = pairs_df
 
         return new_experiment

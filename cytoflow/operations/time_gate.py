@@ -74,7 +74,10 @@ class TimeGateOp(RangeOp):
         if experiment is None:
             raise util.CytoflowOpError('experiment', "No experiment specified")
 
-        # Auto-detect time channel if not explicitly set
+        # Auto-detect the time channel if not set.  We write self.channel once
+        # so the second remote-process apply (triggered by the apply=True observer)
+        # sees channel already set and skips the find_time_channel() call — the
+        # trait value unchanged from 'Time' → 'Time' fires no further notification.
         if not self.channel:
             ch = find_time_channel(experiment)
             if ch is None:

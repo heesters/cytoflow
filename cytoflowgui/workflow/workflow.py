@@ -138,13 +138,11 @@ def _compute_auto_gate_stats(experiment):
     if experiment is None:
         return None
 
-    bool_conds = [k for k, v in experiment.conditions.items()
-                  if isinstance(v, pd.Series) and v.dtype.kind == 'b']
+    bool_conds = [k for k, v in experiment.conditions.items() if v == 'bool']
     if not bool_conds:
         return None
 
-    group_conds = [k for k, v in experiment.conditions.items()
-                   if not (isinstance(v, pd.Series) and v.dtype.kind == 'b')]
+    group_conds = [k for k, v in experiment.conditions.items() if v != 'bool']
 
     # infer parent chain: for each gate, the most recently-added boolean
     # condition before it in experiment.history
