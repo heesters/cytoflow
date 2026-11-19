@@ -52,3 +52,4 @@ from .figure_layout import FigureLayoutPlugin
 from .contour import ContourPlugin
 from .overlay_histogram import OverlayHistogramPlugin
 from .dot_plot import DotPlotPlugin
+from .backgate import BackgatingPlugin
