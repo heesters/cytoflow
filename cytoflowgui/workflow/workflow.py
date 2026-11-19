@@ -176,16 +176,20 @@ def _compute_auto_gate_stats(experiment):
         try:
             if groups is None:
                 total = len(data)
-                gc = int(data[gate].astype(bool).sum())
-                pc = int(data[parent].astype(bool).sum()) if parent else total
+                gate_mask = data[gate].astype(bool)
+                parent_mask = data[parent].astype(bool) if parent else pd.Series(True, index=data.index)
+                gc = int((gate_mask & parent_mask).sum())
+                pc = int(parent_mask.sum())
                 rows.append({'Gate': gate, 'Count': gc,
                              '% Total': 100.0 * gc / total if total > 0 else np.nan,
                              '% Parent': 100.0 * gc / pc if pc > 0 else np.nan})
             else:
                 for group_key, group_data in groups:
                     total = len(group_data)
-                    gc = int(group_data[gate].astype(bool).sum())
-                    pc = int(group_data[parent].astype(bool).sum()) if parent else total
+                    gate_mask = group_data[gate].astype(bool)
+                    parent_mask = group_data[parent].astype(bool) if parent else pd.Series(True, index=group_data.index)
+                    gc = int((gate_mask & parent_mask).sum())
+                    pc = int(parent_mask.sum())
                     key_dict = dict(zip(group_conds, group_key) if isinstance(group_key, tuple)
                                     else [(group_conds[0], group_key)])
                     rows.append({'Gate': gate, **key_dict, 'Count': gc,
