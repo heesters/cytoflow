@@ -67,7 +67,7 @@ import logging
 from natsort import natsorted
 
 from traits.api import List, DelegatesTo, Dict, observe, Property
-from traitsui.api import View, Item, Controller, Spring
+from traitsui.api import View, Item, Controller, Spring, Label, VGroup
 
 import cytoflow.utility as util
 
@@ -159,15 +159,19 @@ class WorkflowItemHandler(Controller):
     # the view for the view params
     def view_params_view(self):
         """
-        Returns the `traitsui.view.View` showing the plot parameters of the current 
+        Returns the `traitsui.view.View` showing the plot parameters of the current
         `IWorkflowView`. The view is actually defined by the view's handler's
         ``view_params_view`` attribute.
         """
-        return View(Item('current_view',
-                         editor = InstanceHandlerEditor(view = 'view_params_view',
-                                                        handler_factory = self._get_view_handler),
-                         style = 'custom',
-                         show_label = False),
+        return View(VGroup(
+                        Label('Select a view to see its plot parameters.',
+                              visible_when = 'object.current_view is None'),
+                        Item('current_view',
+                             editor = InstanceHandlerEditor(view = 'view_params_view',
+                                                            handler_factory = self._get_view_handler),
+                             style = 'custom',
+                             show_label = False,
+                             visible_when = 'object.current_view is not None')),
                     handler = self)
         
     # the view for the tab bar at the top of the plot
@@ -451,6 +455,8 @@ class WorkflowController(Controller):
         
         # is it the default view?
         if view_id == 'default':
+            if self.model.selected.default_view is None:
+                return
             view_id = self.model.selected.default_view.id
         
         # do we already have an instance?

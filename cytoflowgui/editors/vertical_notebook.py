@@ -36,10 +36,31 @@ if __name__ == '__main__':
 from pyface.qt import QtGui, QtCore
 from pyface.api import ImageResource  # @UnresolvedImport
 
-from traits.api import (HasTraits, HasPrivateTraits, Instance, List, Str, Bool, 
+from traits.api import (HasTraits, HasPrivateTraits, Instance, List, Str, Bool,
                         Property, Any, cached_property, on_trait_change)
 
 from traitsui.api import UI, Editor
+
+
+class _ActivatableButton(QtGui.QCommandLinkButton):
+    """QCommandLinkButton that fires a double-click callback."""
+
+    def __init__(self, page, parent=None):
+        super().__init__(parent)
+        self._page = page
+
+    def mouseDoubleClickEvent(self, event):
+        page = self._page
+        # make sure the page is open (selected)
+        if not page.is_open:
+            page.notebook.open(page)
+        # then activate the default view through the workflow controller
+        try:
+            handler = page.notebook.editor.ui.handler
+            if hasattr(handler, 'activate_view'):
+                handler.activate_view('default')
+        except Exception:
+            pass
 
 class VerticalNotebookPage(HasPrivateTraits):
     """ 
@@ -238,7 +259,7 @@ class VerticalNotebookPage(HasPrivateTraits):
         buttons_layout = QtGui.QHBoxLayout()
         buttons_container = QtGui.QWidget()
         
-        self.cmd_button = QtGui.QCommandLinkButton(buttons_container)
+        self.cmd_button = _ActivatableButton(self, buttons_container)
 
         self.cmd_button.setVisible(True)
         self.cmd_button.setCheckable(True)
