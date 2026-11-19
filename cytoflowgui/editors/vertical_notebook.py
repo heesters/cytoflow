@@ -42,12 +42,20 @@ from traits.api import (HasTraits, HasPrivateTraits, Instance, List, Str, Bool,
 from traitsui.api import UI, Editor
 
 
+_DRAG_MIME = 'application/x-cytoflow-step-index'
+_DRAG_THRESHOLD = 8  # pixels before drag starts
+
+
 class _ActivatableButton(QtGui.QCommandLinkButton):
-    """QCommandLinkButton with double-click and Enter-key support for opening the default view."""
+    """QCommandLinkButton with double-click, Enter-key, and drag-to-reorder support."""
 
     def __init__(self, page, parent=None):
         super().__init__(parent)
         self._page = page
+        self._drag_start_pos = None
+        self.setAcceptDrops(True)
+
+    # ---- default-view activation ----
 
     def _activate_default_view(self):
         page = self._page
@@ -68,6 +76,77 @@ class _ActivatableButton(QtGui.QCommandLinkButton):
             self._activate_default_view()
         else:
             super().keyPressEvent(event)
+
+    # ---- drag initiation ----
+
+    def _my_index(self):
+        try:
+            return self._page.notebook.pages.index(self._page)
+        except ValueError:
+            return -1
+
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self._drag_start_pos = event.pos()
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if (self._drag_start_pos is not None
+                and (event.buttons() & QtCore.Qt.MouseButton.LeftButton)
+                and (event.pos() - self._drag_start_pos).manhattanLength() >= _DRAG_THRESHOLD):
+            idx = self._my_index()
+            if idx <= 0:
+                # index 0 is the Import step — never draggable
+                self._drag_start_pos = None
+                return
+            mime = QtCore.QMimeData()
+            mime.setData(_DRAG_MIME, str(idx).encode())
+            drag = QtGui.QDrag(self)
+            drag.setMimeData(mime)
+            drag.exec(QtCore.Qt.DropAction.MoveAction)
+            self._drag_start_pos = None
+        else:
+            super().mouseMoveEvent(event)
+
+    # ---- drop target ----
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat(_DRAG_MIME):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat(_DRAG_MIME):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if not event.mimeData().hasFormat(_DRAG_MIME):
+            event.ignore()
+            return
+        from_idx = int(event.mimeData().data(_DRAG_MIME).data().decode())
+        to_idx = self._my_index()
+        if from_idx == to_idx or to_idx < 0:
+            event.ignore()
+            return
+        # Don't allow dropping onto the Import step slot (index 0 stays Import)
+        if to_idx == 0:
+            event.ignore()
+            return
+        event.acceptProposedAction()
+        self._page.notebook.reorder_page(from_idx, to_idx)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        # Draw a blue drop indicator when this button is the drag target
+        if self.acceptDrops() and self.underMouse():
+            from pyface.qt import QtGui as _QtGui
+            painter = _QtGui.QPainter(self)
+            painter.setPen(_QtGui.QPen(_QtGui.QColor('#1976D2'), 2))
+            painter.drawLine(0, 0, self.width(), 0)
+            painter.end()
 
 class VerticalNotebookPage(HasPrivateTraits):
     """ 
@@ -531,11 +610,33 @@ class VerticalNotebook(HasPrivateTraits):
             page.is_open = True
 
     def close(self, page):
-        """ 
+        """
         Handles closing a specified notebook page.
         """
         if (page is not None) and page.is_open:
             page.is_open = False
+
+    def reorder_page(self, from_idx, to_idx):
+        """
+        Moves the page at *from_idx* to *to_idx* in the underlying list.
+        Index 0 (Import step) is never moveable.
+        Signals the editor to reorder its value list accordingly.
+        """
+        if from_idx <= 0 or to_idx <= 0:
+            return
+        if from_idx == to_idx:
+            return
+        if self.editor is not None:
+            # Reorder the editor's underlying list — this fires update_editor
+            # via the trait observer, which rebuilds pages automatically.
+            value = self.editor.value
+            if from_idx >= len(value) or to_idx >= len(value):
+                return
+            item = value[from_idx]
+            # Perform atomic move: remove then insert
+            del value[from_idx]
+            insert_at = to_idx if to_idx < from_idx else to_idx - 1
+            value.insert(insert_at, item)
 
     #-- Trait Event Handlers -------------------------------------------------
 
