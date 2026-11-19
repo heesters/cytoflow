@@ -146,7 +146,7 @@ class ViewDockPane(TraitsDockPane):
             view_id = self.model.selected.current_view.id
             if self.model.selected.default_view and self.model.selected.default_view.id == view_id:
                 self._default_action.checked = True
-            else:
+            elif view_id in self._actions:
                 self._actions[view_id].checked = True
                 
     @observe('task.application.preferences_helper.show_toolbar_names', post_init = True)

@@ -175,7 +175,10 @@ class FlowTask(Task):
     view_plugins = DelegatesTo('handler')
     """The view plugins"""
     
-    menu_bar = SMenuBar(SMenu(TaskAction(name='Open...',
+    menu_bar = SMenuBar(SMenu(TaskAction(name='New',
+                                         method='on_new',
+                                         accelerator='Ctrl+N'),
+                              TaskAction(name='Open...',
                                          method='on_open',
                                          accelerator='Ctrl+O'),
                               TaskAction(name='Save',
@@ -449,39 +452,46 @@ class FlowTask(Task):
         Load a new workflow from a file
         """
         
+        new_workflow = []
         with warnings.catch_warnings(record = True) as w:
             try:
-            
+
                 new_workflow = load_yaml(path)
-                
+
                 if w:
                     warning(None, w[-1].message.__str__())
-            
+
                 # a few things to take care of when reloading.
                 # we do this in the try block to catch people who
                 # load valid YAML files that aren't from cytoflow.
-                
+
                 for wi_idx, wi in enumerate(new_workflow):
-                    
+
                     # get wi lock
                     wi.lock.acquire()
-                    
+
                     # clear the wi status
                     wi.status = "loading"
-            
+
                     # re-link the linked list.
                     if wi_idx > 0:
                         wi.previous_wi = new_workflow[wi_idx - 1]
-                    
+
                     if wi_idx < len(new_workflow) - 1:
                         wi.next_wi = new_workflow[wi_idx + 1]
-            
+
             except yaml.parser.ParserError as e:
+                for wi in new_workflow:
+                    try: wi.lock.release()
+                    except RuntimeError: pass
                 error(None,
                       "Parser error loading {} -- is it a Cytoflow-GCB file?\n\n{}"
                       .format(path, str(e)))
                 return
             except Exception as e:
+                for wi in new_workflow:
+                    try: wi.lock.release()
+                    except RuntimeError: pass
                 error(None,
                       "{} loading {} -- is it a Cytoflow-GCB file?\n\n{}"
                       .format(e.__class__.__name__, path, str(e)))
@@ -542,19 +552,10 @@ class FlowTask(Task):
                     "operation.")
 
         # replace the current workflow with the one we just loaded
-        
-        if False:  # for debugging the loading of things
-            from cytoflowgui.utility.event_tracer import record_events 
-            
-            with record_events() as container:
-                self.model.workflow = new_workflow
-                                
-            container.save_to_directory(os.getcwd()) 
-        else:
-            self.model.workflow = new_workflow
-            self.model.modified = False
-            self.undo_manager.clear()
-            
+        self.model.workflow = new_workflow
+        self.model.modified = False
+        self.undo_manager.clear()
+
         for wi in self.model.workflow:
             wi.lock.release()
             

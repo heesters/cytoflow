@@ -235,10 +235,12 @@ class WorkflowItemHandler(Controller):
             plugin = next((x for x in self.op_plugins
                            if getattr(x, 'operation_id', None) == self.model.operation.id), None)
             if plugin is not None:
-                try:
-                    return plugin.get_icon().create_icon()
-                except Exception:
-                    pass
+                icon = plugin.get_icon()
+                if icon is not None:
+                    try:
+                        return icon.create_icon()
+                    except Exception:
+                        pass
             return 'ok'
         elif self.model.status in ("estimating", "applying", "loading"):
             return 'refresh'

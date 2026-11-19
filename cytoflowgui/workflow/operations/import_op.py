@@ -141,9 +141,9 @@ class ImportWorkflowOp(WorkflowOperation, ImportOp):
         elif self.ret_experiment:
             return self.ret_experiment
         elif not self.tubes:
-            raise util.CytoflowOpError(None, 'Click "Set up experiment, then "Import!"')
+            raise util.CytoflowOpError(None, 'Click "Set up experiment...", then "Import"')
         else:
-            raise util.CytoflowOpError(None, 'Click "Import!"')
+            raise util.CytoflowOpError(None, 'Click "Import"')
         
     def clear_estimate(self):
         self.ret_experiment = None
