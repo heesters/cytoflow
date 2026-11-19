@@ -40,6 +40,13 @@ from .i_view import IView
 from .base_views import Base2DView
 from .highlight import highlight_mask, draw_highlight, pop_highlight_kwargs, BACKGROUND_COLOR
 
+try:
+    import datashader as _ds
+    import datashader.transfer_functions as _tf
+    _DATASHADER_AVAILABLE = True
+except ImportError:
+    _DATASHADER_AVAILABLE = False
+
 @provides(IView)
 class ScatterplotView(Base2DView):
     """
@@ -214,19 +221,28 @@ class ScatterplotView(Base2DView):
         kwargs.setdefault('s', 2)
         kwargs.setdefault('marker', 'o')
         kwargs.setdefault('antialiased', True)
-        
+
         lim = kwargs.pop('lim')
         xlim = lim[self.xchannel]
         ylim = lim[self.ychannel]
-        
+
         scale = kwargs.pop('scale')
         xscale = scale[self.xchannel]
         yscale = scale[self.ychannel]
-        
+
         highlight_kwargs = pop_highlight_kwargs(kwargs)
         if self._highlight_mask is not None and not self.huefacet and not self.huechannel:
             # draw everything else in grey
             kwargs['color'] = BACKGROUND_COLOR
+
+        # datashader fast path: use for simple density scatter (no per-point
+        # hue channel, no back-gating highlight overlay).  Rasterizes all events
+        # to a fixed-size RGBA image in O(pixels) instead of O(events).
+        _use_datashader = (
+            _DATASHADER_AVAILABLE and
+            not self.huechannel and
+            self._highlight_mask is None
+        )
 
         if self.huechannel:
             if isinstance(cmap, list):
@@ -237,21 +253,39 @@ class ScatterplotView(Base2DView):
                                            experiment,
                                            channel = self.huechannel)
             norm = hue_scale.norm()
-            kwargs['norm'] = norm   
+            kwargs['norm'] = norm
             grid.map(_scatterplot, self.xchannel, self.ychannel, self.huechannel, **kwargs)
+
+        elif _use_datashader:
+            norm = None
+            # Compute limits in transformed (linear display) space
+            xlim_t = (_safe_transform(xscale, xlim[0]),
+                      _safe_transform(xscale, xlim[1]))
+            ylim_t = (_safe_transform(yscale, ylim[0]),
+                      _safe_transform(yscale, ylim[1]))
+            # Strip scatter-specific kwargs that datashader doesn't need
+            ds_kwargs = {k: v for k, v in kwargs.items()
+                         if k not in ('alpha', 's', 'marker', 'antialiased', 'color')}
+            grid.map(_datashader_scatter, self.xchannel, self.ychannel,
+                     xscale=xscale, yscale=yscale,
+                     xlim_t=xlim_t, ylim_t=ylim_t, **ds_kwargs)
+            # Axes are kept LINEAR (pre-transformed data baked into the image)
+            # so return None scales and transformed limits
+            return dict(xlim=xlim_t, xscale=None, ylim=ylim_t, yscale=None, norm=None)
+
         else:
             norm = None
-            grid.map(plt.scatter, self.xchannel, self.ychannel, **kwargs)   
-            
+            grid.map(plt.scatter, self.xchannel, self.ychannel, **kwargs)
+
         if self._highlight_mask is not None:
-            grid.map(draw_highlight, self.xchannel, self.ychannel, 
+            grid.map(draw_highlight, self.xchannel, self.ychannel,
                      mask = self._highlight_mask,
                      highlight_kwargs = highlight_kwargs)
-        
+
         return dict(xlim = xlim,
                     xscale = xscale,
                     ylim = ylim,
-                    yscale = yscale, 
+                    yscale = yscale,
                     norm = norm)
     
     def _update_legend(self, legend):
@@ -263,7 +297,97 @@ class ScatterplotView(Base2DView):
 def _scatterplot(x, y, c, **kwargs):
     del kwargs['color']
     plt.scatter(x, y, c = c, **kwargs),
-    
+
+
+def _safe_transform(scale, value):
+    """Apply scale transform to a scalar, returning the value unchanged on error."""
+    try:
+        result = scale(value)
+        if np.isfinite(result):
+            return float(result)
+    except Exception:
+        pass
+    return float(value)
+
+
+def _datashader_scatter(x, y, xscale=None, yscale=None,
+                        xlim_t=None, ylim_t=None, **kwargs):
+    """Rasterize x/y scatter via datashader in transformed coordinates."""
+    import datashader as ds
+    import datashader.transfer_functions as tf
+    import pandas as pd
+    from matplotlib.ticker import FuncFormatter
+
+    ax = plt.gca()
+
+    # Apply scale transforms
+    x_t = np.asarray(xscale(x), dtype=float) if xscale else np.asarray(x, dtype=float)
+    y_t = np.asarray(yscale(y), dtype=float) if yscale else np.asarray(y, dtype=float)
+
+    # Remove NaN/Inf
+    mask = np.isfinite(x_t) & np.isfinite(y_t)
+    if not mask.any():
+        return
+
+    df = pd.DataFrame({'x': x_t[mask], 'y': y_t[mask]})
+    x_min, x_max = xlim_t
+    y_min, y_max = ylim_t
+
+    if not (np.isfinite(x_min) and np.isfinite(x_max) and
+            np.isfinite(y_min) and np.isfinite(y_max)):
+        return
+    if x_max <= x_min or y_max <= y_min:
+        return
+
+    canvas = ds.Canvas(plot_width=400, plot_height=400,
+                       x_range=(x_min, x_max), y_range=(y_min, y_max))
+    agg = canvas.points(df, 'x', 'y')
+
+    # Use the facet color if supplied by seaborn, else a default blue
+    color = kwargs.pop('color', '#1f77b4')
+    if hasattr(color, '__len__') and not isinstance(color, str):
+        try:
+            import matplotlib.colors as mcolors
+            color = mcolors.to_hex(color)
+        except Exception:
+            color = '#1f77b4'
+
+    img = tf.shade(agg, cmap=['#f0f4ff', color], how='log')
+    img_array = np.array(img.to_pil())   # shape (H, W, 4), row 0 at top (y_max)
+
+    ax.imshow(img_array,
+              extent=(x_min, x_max, y_min, y_max),
+              origin='upper',
+              aspect='auto',
+              interpolation='nearest',
+              zorder=0)
+
+    # Tick formatters: show original data values on the linear axes
+    if xscale is not None and xscale.name != 'linear':
+        inv_x = xscale.inverse
+        ax.xaxis.set_major_formatter(
+            FuncFormatter(lambda v, _: _fmt_scale_tick(inv_x(v))))
+    if yscale is not None and yscale.name != 'linear':
+        inv_y = yscale.inverse
+        ax.yaxis.set_major_formatter(
+            FuncFormatter(lambda v, _: _fmt_scale_tick(inv_y(v))))
+
+
+def _fmt_scale_tick(value):
+    """Format a tick value for a scale-transformed axis."""
+    try:
+        v = float(value)
+        if not np.isfinite(v):
+            return ''
+        if abs(v) >= 10000 or (abs(v) < 0.01 and v != 0):
+            return f'{v:.2e}'
+        if v == int(v):
+            return str(int(v))
+        return f'{v:.3g}'
+    except Exception:
+        return ''
+
+
 util.expand_class_attributes(ScatterplotView)
 util.expand_method_parameters(ScatterplotView, ScatterplotView.plot)
         
