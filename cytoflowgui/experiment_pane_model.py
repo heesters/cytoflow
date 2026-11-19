@@ -231,9 +231,9 @@ class StatisticNode(TreeNodeObject):
         statistic = self.wi.statistics[self.statistic]
         ret = [StringNode(name = 'Name',
                           value = self.statistic)]
-        for i, c in enumerate(statistic.columns):
-            ret.append(StringNode(name = 'Feature {}'.format(i + 1),
-                                  value = c))
+        for c in statistic.columns:
+            ret.append(StringNode(name = 'Column',
+                                  value = str(c)))
                 
         if statistic.index.nlevels == 1:
             ret.append(StringNode(name = 'Facet Name',

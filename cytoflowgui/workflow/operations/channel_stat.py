@@ -40,7 +40,8 @@ from ..subset import ISubset
 mean_95ci = lambda x: util.ci(x, np.mean, boots = 100)
 geomean_95ci = lambda x: util.ci(x, util.geom_mean, boots = 100)
 
-summary_functions = {"Mean" : np.mean,
+summary_functions = {"% Positive" : lambda x: 100.0 * (x > 0).sum() / len(x) if len(x) > 0 else np.nan,
+                     "Mean" : np.mean,
                      "Mean +- SD" : lambda x: pd.Series({"Mean" : x.mean(),
                                                          "+SD" : x.mean() + x.std(),
                                                          "-SD" : x.mean() - x.std()}),

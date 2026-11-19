@@ -179,7 +179,7 @@ class Stats1DHandler(ViewHandler):
                          editor=ExtendableEnumEditor(name='handler.features',
                                                      extra_items = {"None" : ""}),
                          label = "Error Bar High"),
-                    label = "One-Dimensional Statistics Plot",
+                    label = "Plot settings",
                     show_border = False),
              VGroup(Item('subset_list',
                          show_label = False,

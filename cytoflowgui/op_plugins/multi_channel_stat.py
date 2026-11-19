@@ -137,7 +137,7 @@ class MultiChannelStatisticPlugin(Plugin, PluginHelpMixin):
     view_id = None
 
     name = "Multi Channel Statistic"
-    short_name = "Multi\nStatistic"
+    short_name = "Multi Stat"
     menu_group = "Statistics"
     
     def get_operation(self):

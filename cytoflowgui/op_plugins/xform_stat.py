@@ -192,7 +192,7 @@ class TransformStatisticPlugin(Plugin, PluginHelpMixin):
     view_id = None
 
     name = "Transform Statistic"
-    short_name = "Xform\nStatistic"
+    short_name = "Transform"
     menu_group = "Statistics"
     
     def get_operation(self):

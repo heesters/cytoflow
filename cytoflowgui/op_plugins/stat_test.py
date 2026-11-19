@@ -309,7 +309,7 @@ class StatisticalTestPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.statisticaltestview'
 
     name = "Statistical Test"
-    short_name = "Stat\nTest"
+    short_name = "Stat Test"
     menu_group = "Statistics"
 
     def get_operation(self):
