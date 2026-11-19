@@ -61,6 +61,7 @@ from .view_pane import ViewDockPane, PlotParamsPane
 from .help_pane import HelpDockPane
 from .experiment_pane import ExperimentBrowserDockPane
 from .stats_pane import StatsDockPane
+from .population_tree_pane import PopulationTreeDockPane
 from .matplotlib_backend_local import FigureCanvasQTAggLocal
 from .workflow import LocalWorkflow
 from .workflow.undo import UndoManager
@@ -165,6 +166,9 @@ class FlowTask(Task):
 
     stats_pane = Instance(StatsDockPane)
     """The live gate statistics dock pane"""
+
+    population_tree_pane = Instance(PopulationTreeDockPane)
+    """The population hierarchy tree dock pane"""
     
     undo_manager = Instance(UndoManager)
     """Undo / redo history"""
@@ -351,7 +355,8 @@ class FlowTask(Task):
                                            PaneItem("cytoflowgui.help_pane", width = 280, height = 280)),
                           right = VSplitter(PaneItem("cytoflowgui.view_traits_pane", width = 340),
                                             PaneItem("cytoflowgui.params_pane", width = 340, height = 200),
-                                            PaneItem("cytoflowgui.stats_pane", width = 340, height = 280)),
+                                            PaneItem("cytoflowgui.stats_pane", width = 340, height = 240),
+                                            PaneItem("cytoflowgui.population_tree_pane", width = 340, height = 200)),
                           top_left_corner = 'left',
                           bottom_left_corner = 'left',
                           top_right_corner = 'right',
@@ -403,8 +408,12 @@ class FlowTask(Task):
         self.stats_pane = StatsDockPane(model = self.model,
                                         handler = self.handler)
 
+        self.population_tree_pane = PopulationTreeDockPane(model = self.model,
+                                                           handler = self.handler)
+
         return [self.workflow_pane, self.view_pane, self.plot_params_pane,
-                self.browser_pane, self.help_pane, self.stats_pane]
+                self.browser_pane, self.help_pane, self.stats_pane,
+                self.population_tree_pane]
         
     def on_new(self):
         """
