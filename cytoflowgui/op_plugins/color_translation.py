@@ -125,7 +125,7 @@ class ColorTranslationHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              shared_op_traits_view)
         
@@ -170,7 +170,7 @@ class ColorTranslationPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.colortranslationdiagnostic'
 
     name = "Color Translation"
-    short_name = "Color\nTranslate"
+    short_name = "Color XL"
     menu_group = "Preprocessing"
     
     def get_operation(self):

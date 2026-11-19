@@ -158,7 +158,7 @@ class GaussianMixture2DHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              label = "Estimation parameters",
              show_border = False),
@@ -180,7 +180,7 @@ class GaussianMixture2DViewHandler(ViewHandler):
                          editor=ExtendableEnumEditor(name='by',
                                                      extra_items = {"None" : ""}),
                          label = "Vertical\nFacet"),
-                    label = "2D Mixture Model Default Plot",
+                    label = "Plot settings",
                     show_border = False)),
              Item('context.view_warning',
                   resizable = True,
@@ -209,7 +209,7 @@ class GaussianMixture2DPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.gaussianmixture2dview'
 
     name = "2D Mixture Model"
-    short_name = "2D\nGaussian"
+    short_name = "2D Gauss"
     menu_group = "Clustering"
     
     def get_operation(self):

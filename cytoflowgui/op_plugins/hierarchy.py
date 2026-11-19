@@ -150,7 +150,7 @@ class HierarchyPlugin(Plugin, PluginHelpMixin):
     operation_id = 'cytoflow.operations.hierarchy'
     view_id = None
 
-    short_name = "Gate\nHierarchy"
+    short_name = "Hierarchy"
     name = "Hierarchical Gating"
     menu_group = "Gates"
     

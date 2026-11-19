@@ -240,7 +240,7 @@ class WorkflowItemHandler(Controller):
                 except Exception:
                     pass
             return 'ok'
-        elif self.model.status in ("estimating", "applying"):
+        elif self.model.status in ("estimating", "applying", "loading"):
             return 'refresh'
         else:
             return 'error'

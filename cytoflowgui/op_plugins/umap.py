@@ -202,7 +202,7 @@ class UMAPHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              Item('status',
                   width = 1.0,

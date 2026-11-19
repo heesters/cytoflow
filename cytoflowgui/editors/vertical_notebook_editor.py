@@ -61,7 +61,6 @@ class _VerticalNotebookEditor(Editor):
         """
         
         factory = self.factory
-        print(factory)
         self.notebook = VerticalNotebook(**factory.trait_get('multiple_open',
                                                              'delete')).trait_set(editor=self)
         self.control = self.notebook.create_control(parent)

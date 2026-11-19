@@ -93,7 +93,7 @@ class AutofluorescenceHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              shared_op_traits_view)
 
@@ -121,7 +121,7 @@ class AutofluorescencePlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.autofluorescencediagnosticview'
 
     name = "Autofluorescence correction"
-    short_name = "Autofluor\nCorrect"
+    short_name = "Autofluor"
     menu_group = "Calibration"
     
     def get_operation(self):

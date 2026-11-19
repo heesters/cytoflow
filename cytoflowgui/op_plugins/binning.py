@@ -102,7 +102,7 @@ class BinningViewHandler(ViewHandler):
         View(VGroup(
              VGroup(Item('channel',
                          style = 'readonly'),
-                    label = "Binning Default Plot",
+                    label = "Plot settings",
                     show_border = False)),
              VGroup(Item('subset_list',
                          show_label = False,

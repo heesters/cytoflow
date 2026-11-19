@@ -135,7 +135,7 @@ class BooleanGatePlugin(Plugin, PluginHelpMixin):
     operation_id = 'cytoflow.operations.boolean_gate'
     view_id = None
 
-    short_name = "Boolean\nGate"
+    short_name = "Boolean"
     name = "Boolean Gate"
     menu_group = "Gates"
 

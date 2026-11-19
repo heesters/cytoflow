@@ -128,8 +128,8 @@ class CalciumFluxPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.views.calcium_flux'
 
     name = "Calcium Flux"
-    short_name = "Calcium\nFlux"
-    menu_group = "TOOLS"
+    short_name = "Ca Flux"
+    menu_group = "Tools"
 
     def get_operation(self):
         return CalciumFluxWorkflowOp()

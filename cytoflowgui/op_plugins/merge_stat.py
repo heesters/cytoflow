@@ -76,7 +76,7 @@ class MergeStatisticsPlugin(Plugin, PluginHelpMixin):
     view_id = None
 
     name = "Merge Statistics"
-    short_name = "Merge\nStats"
+    short_name = "Merge Stats"
     menu_group = "Statistics"
     
     def get_operation(self):

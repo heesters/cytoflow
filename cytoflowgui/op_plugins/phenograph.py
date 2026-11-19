@@ -154,7 +154,7 @@ class PhenographHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              shared_op_traits_view)
 

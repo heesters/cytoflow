@@ -98,7 +98,7 @@ class ChannelStatisticPlugin(Plugin, PluginHelpMixin):
     view_id = None
 
     name = "Channel Statistic"
-    short_name = "Channel\nStatistic"
+    short_name = "Chan Stat"
     menu_group = "Statistics"
     
     def get_operation(self):

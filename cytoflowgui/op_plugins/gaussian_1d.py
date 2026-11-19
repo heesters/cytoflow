@@ -142,7 +142,7 @@ class GaussianMixture1DHandler(OpHandler):
              Item('by',
                   editor = CheckListEditor(cols = 2,
                                            name = 'context_handler.previous_conditions_names'),
-                  label = 'Group\nEstimates\nBy',
+                  label = 'Group By',
                   style = 'custom'),
              VGroup(Item('subset_list',
                          show_label = False,
@@ -154,7 +154,7 @@ class GaussianMixture1DHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              label = "Estimation parameters",
              show_border = False),
@@ -174,7 +174,7 @@ class GaussianMixture1DViewHandler(ViewHandler):
                          editor=ExtendableEnumEditor(name='by',
                                                      extra_items = {"None" : ""}),
                          label = "Vertical\nFacet"),
-                    label = "1D Mixture Model Default Plot",
+                    label = "Plot settings",
                     show_border = False)),
              Item('context.view_warning',
                   resizable = True,
@@ -203,7 +203,7 @@ class GaussianMixture1DPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.gaussianmixture1dview'
 
     name = "1D Gaussian Mixture Model"
-    short_name = "1D\nGaussian"
+    short_name = "1D Gauss"
     menu_group = "Clustering"
     
     def get_operation(self):

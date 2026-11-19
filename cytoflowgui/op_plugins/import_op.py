@@ -121,7 +121,7 @@ Import FCS files and associate them with experimental conditions (metadata.)
 from traits.api import (Button, Property, cached_property, List,
                         Instance, provides, observe, Event)
 from traitsui.api import (View, Item, Controller, TextEditor, ButtonEditor,
-                          HGroup, VGroup, Label, EnumEditor)
+                          HGroup, VGroup, Label, Spring, EnumEditor)
 
 from envisage.api import Plugin
                        
@@ -136,26 +136,30 @@ from .op_plugin_base import OpHandler, PluginHelpMixin, shared_op_traits_view
 
 class ChannelHandler(Controller):
     default_view = View(HGroup(Item('channel', style = 'readonly', show_label = False,
-                                    width = 80),
-                               Item(label = '-->'),
+                                    width = 100,
+                                    tooltip = "Original channel name from the FCS file"),
                                Item('name',
                                     editor = TextEditor(auto_set = False),
                                     show_label = False,
-                                    width = 80),
+                                    width = 90,
+                                    tooltip = "Short identifier used in Python expressions; "
+                                              "no spaces or special characters"),
                                Item('label',
                                     editor = TextEditor(auto_set = False,
                                                         placeholder = "Axis label"),
-                                    tooltip = "Free-text label used for plot axes; "
+                                    tooltip = "Free-text label shown on plot axes; "
                                               "can contain spaces and punctuation",
                                     show_label = False,
-                                    width = 100),
+                                    width = 110),
                                Item('scale',
                                     editor = EnumEditor(values = {'log': 'log',
                                                                    'linear': 'linear',
                                                                    'logicle': 'logicle'}),
-                                    tooltip = "Default scale for plots of this channel",
+                                    tooltip = "Default axis scale for this channel. "
+                                              "'logicle' handles negative values and is "
+                                              "recommended for antibody channels.",
                                     show_label = False,
-                                    width = 65)))
+                                    width = 70)))
     
 
 class ImportHandler(OpHandler):
@@ -166,8 +170,12 @@ class ImportHandler(OpHandler):
     dialog_model = Instance(ExperimentDialogModel)
         
     operation_traits_view = \
-        View(VGroup(Label(label = "Channels",
-                          visible_when = 'model.tubes' ),
+        View(VGroup(HGroup(Label("FCS channel"),
+                           Spring(),
+                           Label("Short name"),
+                           Label("Axis label"),
+                           Label("Scale"),
+                           visible_when = 'model.tubes'),
                     Item('object.channels_list',
                          editor = VerticalListEditor(editor = InstanceHandlerEditor(handler_factory = ChannelHandler,
                                                                                     view = "default_view"),
@@ -187,14 +195,21 @@ class ImportHandler(OpHandler):
                                       placeholder = "None",
                                       format_func = lambda x: "" if x is None else str(x)),
                   label="Events per\nsample"),
-             Item('object.ignore_v_bool', label='Ignore\nVoltage'),
+             Item('object.ignore_v_bool',
+                  label='Ignore\nVoltage',
+                  tooltip = "CAUTION: disabling voltage checking can invalidate quantitative "
+                            "comparisons between samples. Only enable if samples were "
+                            "intentionally acquired at different voltage settings."),
              Item('handler.samples', label='Samples', style='readonly'),
-             Item('ret_events', label='Events', style='readonly'),
+             Item('ret_events',
+                  label='Events',
+                  style='readonly',
+                  tooltip = "Total events loaded after clicking Import"),
              Item('handler.setup_event',
                   editor = ButtonEditor(value = True, label = "Set up experiment..."),
                   show_label=False),
              Item('object.do_estimate',
-                  editor = ButtonEditor(value = True, label = "Import!"),
+                  editor = ButtonEditor(value = True, label = "Import"),
                   show_label = False),
              shared_op_traits_view)
      

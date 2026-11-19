@@ -216,7 +216,7 @@ class EllipseViewHandler(ViewHandler):
                     Item('huescale',
                          visible_when = 'plot_params.density',
                          label = "Color\nScale"),
-                    label = "Ellipse Setup View",
+                    label = "Plot settings",
                     show_border = False),
              VGroup(Item('subset_list',
                          show_label = False,

@@ -156,7 +156,7 @@ class DensityGateHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              label = "Estimation parameters",
              show_border = False),
@@ -181,7 +181,7 @@ class DensityGateViewHandler(ViewHandler):
                          style = 'readonly'),
                     Item('huescale',
                          label = "Hue scale"),
-                    label = "Density Gate Default Plot",
+                    label = "Plot settings",
                     show_border = False)),
              Item('context.view_warning',
                   resizable = True,
@@ -211,7 +211,7 @@ class DensityGatePlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.densitygateview'
 
     name = "Density Gate"
-    short_name = "Density\nGate"
+    short_name = "Density"
     menu_group = "Gates"
     
     def get_operation(self):

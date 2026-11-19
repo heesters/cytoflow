@@ -154,7 +154,7 @@ class CompensationPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.compensationdiagnostic'
 
     name = "Compensation (from FCS)"
-    short_name = "Compen-\nsation"
+    short_name = "Compensation"
     menu_group = "Preprocessing"
 
     def get_operation(self):

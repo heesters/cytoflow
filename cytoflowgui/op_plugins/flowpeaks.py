@@ -150,7 +150,7 @@ class FlowPeaksHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              label = "Estimation parameters",
              show_border = False),
@@ -167,7 +167,7 @@ class FlowPeaksViewHandler(ViewHandler):
                          style = 'readonly'),
                     Item('show_density',
                          label = "Show density plot?"),
-                    label = "Flow Peaks Default Plot",
+                    label = "Plot settings",
                     show_border = False)),
              Item('context.view_warning',
                   resizable = True,
@@ -203,7 +203,7 @@ class FlowPeaksPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflowgui.op_plugins.flowpeaks'
 
     name = "Flow Peaks Clustering"
-    short_name = "Flow\nPeaks"
+    short_name = "FlowPeaks"
     menu_group = "Clustering"
     
     def get_operation(self):

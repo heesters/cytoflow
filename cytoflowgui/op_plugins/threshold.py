@@ -123,7 +123,7 @@ class ThresholdViewHandler(ViewHandler):
                          editor=ExtendableEnumEditor(name='context_handler.previous_conditions_names',
                                                      extra_items = {"None" : ""}),
                          label="Color\nFacet"),
-                    label = "Threshold Setup View",
+                    label = "Plot settings",
                     show_border = False),
              VGroup(Item('subset_list',
                          show_label = False,

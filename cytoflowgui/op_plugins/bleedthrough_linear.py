@@ -170,7 +170,7 @@ class BleedthroughLinearHandler(OpHandler):
                             show_labels = False),
                 Item('do_estimate',
                      editor = ButtonEditor(value = True,
-                                           label = "Estimate!"),
+                                           label = "Estimate"),
                      show_label = False),
                 shared_op_traits_view))
         
@@ -236,7 +236,7 @@ class BleedthroughLinearPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.linearbleedthroughdiagnostic'
 
     name = "Linear Compensation"
-    short_name = "Bleedthru\nCorrect"
+    short_name = "Bleedthru"
     menu_group = "Preprocessing"
     
     def get_operation(self):

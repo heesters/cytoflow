@@ -129,7 +129,7 @@ class RangeViewHandler(ViewHandler):
                          editor=ExtendableEnumEditor(name='context_handler.previous_conditions_names',
                                                      extra_items = {"None" : ""}),
                          label="Color\nFacet"),
-                     label = "Range Setup View",
+                     label = "Plot settings",
                      show_border = False),
              VGroup(Item('subset_list',
                          show_label = False,

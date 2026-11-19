@@ -120,7 +120,7 @@ class CellCycleHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              shared_op_traits_view)
 
@@ -157,7 +157,7 @@ class CellCyclePlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.cellcycleview'
 
     name = "Cell Cycle"
-    short_name = "Cell\nCycle"
+    short_name = "Cell Cycle"
     menu_group = "Clustering"
     
     def get_operation(self):

@@ -28,7 +28,7 @@ from traits.api import provides, Instance, List, observe
 
 from pyface.qt import QtCore
 from pyface.tasks.api import TraitsDockPane, IDockPane  # @UnresolvedImport
-from pyface.action.api import ToolBarManager  # @UnresolvedImport
+from pyface.action.api import ToolBarManager, Separator  # @UnresolvedImport
 from pyface.tasks.action.api import TaskAction
 from pyface.qt import QtGui, QtCore
 
@@ -62,15 +62,22 @@ class WorkflowDockPane(TraitsDockPane):
                                            show_tool_names = self.task.application.preferences_helper.show_toolbar_names,
                                            image_size = (40, 40))
                  
+        current_group = None
         for plugin in self.plugins:
-            
+
             # don't include the import plugin
             if plugin.id == 'cytoflowgui.op_plugins.import':
                 continue
-            
+
+            group = getattr(plugin, 'menu_group', None)
+            if group != current_group:
+                if current_group is not None:
+                    self._toolbar_mgr.append(Separator())
+                current_group = group
+
             task_action = TaskAction(name=plugin.short_name,
                                      tooltip = plugin.name,
-                                     on_perform = lambda plugin_id = plugin.operation_id: 
+                                     on_perform = lambda plugin_id = plugin.operation_id:
                                         self.handler.add_operation(plugin_id),
                                      image = plugin.get_icon())
             self._toolbar_mgr.append(task_action)

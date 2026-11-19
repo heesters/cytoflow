@@ -185,7 +185,7 @@ class CrossEntropyTestHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              shared_op_traits_view)
 
@@ -230,7 +230,7 @@ class CrossEntropyTestPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.crossentropytestview'
 
     name = "Cross Entropy Test"
-    short_name = "Cross\nEntropy"
+    short_name = "Cross Ent"
     menu_group = "Computational Flow"
     
     def get_operation(self):

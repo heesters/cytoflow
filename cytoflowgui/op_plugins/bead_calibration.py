@@ -160,7 +160,7 @@ class BeadCalibrationHandler(OpHandler):
                   label = "Peak\nCutoff"),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              shared_op_traits_view)
         
@@ -212,7 +212,7 @@ class BeadCalibrationPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.beadcalibrationdiagnosticview'
 
     name = "Bead Calibration"
-    short_name = "Bead\nCalib"
+    short_name = "Bead Cal"
     menu_group = "Preprocessing"
     
     def get_operation(self):

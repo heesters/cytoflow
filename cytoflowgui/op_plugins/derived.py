@@ -135,7 +135,7 @@ class DerivedParameterPlugin(Plugin, PluginHelpMixin):
     operation_id = 'cytoflow.operations.derived'
     view_id = None
 
-    short_name = "Derived\nParameter"
+    short_name = "Derived"
     name = "Derived Parameter"
     menu_group = "Preprocessing"
 

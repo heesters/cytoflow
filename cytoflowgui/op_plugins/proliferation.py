@@ -156,7 +156,7 @@ class ProliferationHandler(OpHandler):
                     show_labels = False),
              Item('do_estimate',
                   editor = ButtonEditor(value = True,
-                                        label = "Estimate!"),
+                                        label = "Estimate"),
                   show_label = False),
              shared_op_traits_view)
 
@@ -193,7 +193,7 @@ class ProliferationPlugin(Plugin, PluginHelpMixin):
     view_id = 'cytoflow.view.proliferationview'
 
     name = "Proliferation"
-    short_name = "Prolif-\neration"
+    short_name = "Proliferation"
     menu_group = "Clustering"
     
     def get_operation(self):

@@ -138,7 +138,7 @@ class CategoryPlugin(Plugin, PluginHelpMixin):
     operation_id = 'cytoflow.operations.category'
     view_id = None
 
-    short_name = "Gate\nCategories"
+    short_name = "Gate Cat"
     name = "Categorical Gating"
     menu_group = "Gates"
     

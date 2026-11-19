@@ -244,7 +244,7 @@ class FlowTask(Task):
                                              image=ImageResource('export')),
                                   TaskAction(method='on_notebook',
                                               name='Notebook',
-                                              tooltip="Export to an Jupyter notebook...",
+                                              tooltip="Export to a Jupyter notebook...",
                                               image=ImageResource('jupyter')),
                                   PreferencesAction(image = ImageResource('prefs'))),
                            SGroup(TaskAction(method = 'on_toggle_workflow',
@@ -319,10 +319,13 @@ class FlowTask(Task):
             msg = dedent("""
             Welcome to <strong>Cytoflow-GCB!</strong>
             <p>
-            You can find the manual online at
-            <a href="https://cytoflow.readthedocs.org">https://cytoflow.readthedocs.org</a>.
+            Get started: click <strong>Set up experiment</strong> in the Import step
+            to load your FCS files. Then add gates from the toolbar on the left.
             <p>
-            Thanks! And happy flowing!
+            You can find the manual online at
+            <a href="https://cytoflow.readthedocs.io/en/stable/user_manual/user_manual.html">cytoflow.readthedocs.io</a>.
+            <p>
+            Happy flowing!
             """)
 
             dialog = MessageDialog(title = "Welcome to Cytoflow-GCB!",
@@ -336,12 +339,11 @@ class FlowTask(Task):
         Returns the default layout for the dock panes.
         """
         
-        pane_size = 400
-        return TaskLayout(left = VSplitter(PaneItem("cytoflowgui.workflow_pane", width = pane_size),
-                                           PaneItem("cytoflowgui.experiment_pane", width = pane_size),
-                                           PaneItem("cytoflowgui.help_pane", width = pane_size, height = pane_size)),
-                          right = VSplitter(PaneItem("cytoflowgui.view_traits_pane", width = pane_size),
-                                            PaneItem("cytoflowgui.params_pane", width = pane_size, height = pane_size)),
+        return TaskLayout(left = VSplitter(PaneItem("cytoflowgui.workflow_pane", width = 280),
+                                           PaneItem("cytoflowgui.experiment_pane", width = 280),
+                                           PaneItem("cytoflowgui.help_pane", width = 280, height = 280)),
+                          right = VSplitter(PaneItem("cytoflowgui.view_traits_pane", width = 340),
+                                            PaneItem("cytoflowgui.params_pane", width = 340, height = 340)),
                           top_left_corner = 'left',
                           bottom_left_corner = 'left',
                           top_right_corner = 'right',
@@ -556,15 +558,7 @@ class FlowTask(Task):
         for wi in self.model.workflow:
             wi.lock.release()
             
-        if self.model.debug:
-            self.model.run_all()
-        else:
-            ret = confirm(parent = None,
-                          message = "Do you want to execute the workflow now?",
-                          title = "Run workflow?")
-            
-            if ret == YES:
-                self.model.run_all()
+        self.model.run_all()
         
     def on_save(self):
         """ Save the workflow to the current filename  """

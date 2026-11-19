@@ -203,7 +203,7 @@ class Range2DViewHandler(ViewHandler):
                     Item('huescale',
                          visible_when = 'plot_params.density',
                          label = "Color\nScale"),
-                    label = "2D Range Setup View",
+                    label = "Plot settings",
                     show_border = False),
              VGroup(Item('subset_list',
                          show_label = False,

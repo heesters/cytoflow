@@ -177,7 +177,7 @@ class AutoSpillHandler(OpHandler):
                      label = "Max events"),
                 Item('do_estimate',
                      editor = ButtonEditor(value = True,
-                                           label = "Estimate!"),
+                                           label = "Estimate"),
                      show_label = False),
                 Item('handler.show_qc',
                      editor = ButtonEditor(value = True,
