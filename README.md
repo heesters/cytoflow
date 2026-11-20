@@ -10,9 +10,9 @@ Cytoflow-GCB is a fork of [Cytoflow](https://github.com/cytoflow/cytoflow) with 
 
 Pre-built packages for **macOS (Apple Silicon)** and **Windows** are on the [Releases](../../releases) page.  Download the latest release and follow the instructions for your platform.
 
-### macOS (Intel and Apple Silicon)
+### macOS (Apple Silicon — M1/M2/M3/M4)
 
-1. Download `Cytoflow-GCB-macos_x86-64.zip` and unzip it.
+1. Download `Cytoflow-GCB-macos_arm64.zip` and unzip it.
 2. Move **Cytoflow-GCB.app** to your Applications folder.
 3. First launch: right-click (or Control-click) the app → **Open** → **Open** again in the dialog that appears.
 4. If macOS still says the app is damaged, run this once in Terminal:
@@ -21,7 +21,7 @@ Pre-built packages for **macOS (Apple Silicon)** and **Windows** are on the [Rel
    ```
    Then try launching normally.
 
-> **Why?** The app is not code-signed by Apple.  macOS quarantines anything downloaded from the internet; the steps above lift that quarantine.  The package is built for Intel (x86_64) and runs on Apple Silicon Macs via Rosetta 2, which macOS installs automatically on first use.
+> **Why?** The app is not code-signed by Apple.  macOS quarantines anything downloaded from the internet; the steps above lift that quarantine.
 
 ### Windows
 

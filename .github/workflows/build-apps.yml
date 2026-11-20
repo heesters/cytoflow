@@ -59,13 +59,13 @@ jobs:
         body: |
           ## Cytoflow-GCB ${{ steps.version.outputs.version }}
 
-          Packages for **macOS** and **Windows**.
+          Packages for **macOS (Apple Silicon)** and **Windows**.
           See [`CHANGES.md`](https://github.com/${{ github.repository }}/blob/master/CHANGES.md) for the full list of changes.
 
           **These applications are not code-signed**, so macOS and Windows will warn before the first launch.
 
-          ### macOS (Intel and Apple Silicon via Rosetta 2)
-          1. Download `Cytoflow-GCB-macos_x86-64.zip` and unzip it.
+          ### macOS (Apple Silicon — M1/M2/M3/M4)
+          1. Download `Cytoflow-GCB-macos_arm64.zip` and unzip it.
           2. Move **Cytoflow-GCB.app** to your Applications folder.
           3. First launch: right-click (or Control-click) the app → **Open** → **Open** again.
           4. If macOS still says "app is damaged", run once in Terminal:
@@ -78,9 +78,9 @@ jobs:
           2. If Windows SmartScreen appears, click **More info** → **Run anyway**.
 
   build-macos:
-    name: Build macOS app
+    name: Build macOS app (arm64)
     needs: prepare
-    runs-on: macos-26-intel
+    runs-on: macos-latest
     timeout-minutes: 360
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
@@ -140,15 +140,15 @@ jobs:
       run: |
         cd dist/
         # ditto keeps the symlinks and permissions inside the bundle intact
-        ditto -c -k --sequesterRsrc --keepParent "Cytoflow-GCB.app" "Cytoflow-GCB-macos_x86-64.zip"
+        ditto -c -k --sequesterRsrc --keepParent "Cytoflow-GCB.app" "Cytoflow-GCB-macos_arm64.zip"
         rm -rf "Cytoflow-GCB.app" cytoflow
-        echo "GUI_FILE=Cytoflow-GCB-macos_x86-64.zip" >> $GITHUB_OUTPUT
+        echo "GUI_FILE=Cytoflow-GCB-macos_arm64.zip" >> $GITHUB_OUTPUT
         ls -l
 
     - name: Save the app as an artifact
       uses: actions/upload-artifact@v7.0.1
       with:
-        name: macos-x86-64-app
+        name: macos-arm64-app
         retention-days: 30
         path: dist/*
 
