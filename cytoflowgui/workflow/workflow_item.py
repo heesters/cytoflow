@@ -379,10 +379,18 @@ class WorkflowItem(HasStrictTraits):
                 
                 plot_params = self.current_view.plot_params.trait_get()
                 
-                # filter out empty traits so we don't get a bunch of 
-                # empty kwargs in View.plot()
+                # filter out empty traits so we don't get a bunch of
+                # empty kwargs in View.plot().
+                # Also filter (None, None) tuples (unset lim/xlim/ylim) so
+                # they don't shadow min_quantile / max_quantile computation.
+                def _is_empty(v):
+                    if isinstance(v, str) and not v:
+                        return True
+                    if isinstance(v, tuple) and all(x is None for x in v):
+                        return True
+                    return False
                 plot_params = {k:v for k, v in plot_params.items()
-                               if not (isinstance(v, str) and not v)}
+                               if not _is_empty(v)}
                 
                 # tell the canvas which plot this is, so it can remember (and
                 # re-apply) the user's zoom across replots
