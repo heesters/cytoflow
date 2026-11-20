@@ -1,106 +1,121 @@
-# Cytoflow
+# Cytoflow-GCB
 
-## Python tools for quantitative, reproducible flow cytometry analysis
+**A point-and-click flow cytometry analysis tool for germinal centre biology.**
 
-Welcome to a different style of flow cytometry analysis.  Take a look at some example [Jupyter](http://jupyter.org/) notebooks:
+Cytoflow-GCB is a fork of [Cytoflow](https://github.com/cytoflow/cytoflow) with additional operations, views and quality-of-life improvements developed in the [Heesters Lab](https://heesters.gitlab.io/) (Lab for Germinal Center Biology, Utrecht University).  It runs as a standalone desktop application — no Python installation required.
 
-* [Basic flow cytometry analysis](https://github.com/cytoflow/cytoflow/blob/master/docs/examples-basic/Basic%20Cytometry.ipynb)
-* [An small-molecule induction curve with yeast](https://github.com/cytoflow/cytoflow/blob/master/docs/examples-basic/Yeast%20Dose%20Response.ipynb)
-* [Machine learning applied to flow cytometry data](https://github.com/cytoflow/cytoflow/blob/master/docs/examples-basic/Machine%20Learning.ipynb)
-* [Reproduced analysis from a published paper](https://github.com/cytoflow/cytoflow-examples/blob/master/kiani/Kiani%20Nature%20Methods%202014.ipynb)
-* [A multi-dimensional induction in yeast](https://github.com/cytoflow/cytoflow-examples/blob/master/yeast/Induction%20Timecourse.ipynb)
-* [Calibrated flow cytometry](https://github.com/cytoflow/cytoflow-examples/blob/master/tasbe/TASBE%20Workflow.ipynb)
+---
 
-or some [screenshots from the GUI](http://cytoflow.github.io/screenshots.html)
+## Download
 
-## Cytoflow is developed sporadically. 
+Pre-built packages for **macOS (Apple Silicon)** and **Windows** are on the [Releases](../../releases) page.  Download the latest release and follow the instructions for your platform.
 
-My 'day job' is teaching at a regional comprehensive college, so during the semester I may not have a huge amount of time to respond to bugs and feature requests. I'm still activately developing Cytoflow, so please continue to file bugs!
+### macOS (Apple Silicon — M1/M2/M3/M4)
 
-## Cytoflow's development isn't free -- your support is appreciated.
+1. Download `Cytoflow-GCB-macos_arm64.zip` and unzip it.
+2. Move **Cytoflow-GCB.app** to your Applications folder.
+3. First launch: right-click (or Control-click) the app → **Open** → **Open** again in the dialog that appears.
+4. If macOS still says the app is damaged, run this once in Terminal:
+   ```
+   xattr -dr com.apple.quarantine /Applications/Cytoflow-GCB.app
+   ```
+   Then try launching normally.
 
-I pay several hundred dollars a year to sign the code so it can be installed on Windows and Mac systems. If you have found it useful, consider [contributing a few dollars on Ko-Fi?](https://ko-fi.com/lrteague)
+> **Why?** The app is not code-signed by Apple.  macOS quarantines anything downloaded from the internet; the steps above lift that quarantine.
 
-### What's wrong with other packages?  
+### Windows
 
-Packages such as FACSDiva and FlowJo are focused on primarily on identifying
-and counting subpopulations of cells in a multi-channel flow cytometry
-experiment.  While this is important for many different applications, it
-reflects flow cytometry's origins in separating mixtures of cells based on
-differential staining of their cell surface markers.
+1. Download `Cytoflow-GCB-win_x86-64.exe` and run it.
+2. If Windows SmartScreen appears, click **More info** → **Run anyway**.
 
-Cytometers can also be used to measure internal cell state, frequently as
-reported by fluorescent proteins such as GFP.  In this context, they function
-in a manner similar to a high-powered plate-reader: instead of reporting the
-sum fluorescence of a population of cells, the cytometer shows you the
-*distribution* of the cells' fluorescence.  Thinking in terms of distributions,
-and how those distributions change as you vary an experimental variable, is
-something existing packages don't handle gracefully.
+---
 
-### What's different about Cytoflow?
+## What is Cytoflow?
 
-A few things.
+Cytoflow treats a cytometry experiment as a **workflow**: a sequence of operations (gating, compensation, transforms, statistics) applied to imported FCS data, each building on the last.  Operations and views are configured in the left-hand panel; a plot updates live on the right.  Workflows are saved to `.flow` files and can be re-opened, shared and re-run on new data.
 
-* **Free and open-source.**  Use the software free-of-charge; modify it to
-  suit your own needs, then contribute your changes back so the rest of the
-  community can benefit from them.
+The design philosophy is [described in detail](https://github.com/cytoflow/cytoflow#whats-different-about-cytoflow) in the upstream repository.
 
-* A [**point-and-click interface**](http://cytoflow.github.io/) for
-  easy analysis.
+---
 
-* **Python modules** to integrate into larger apps, automation, or for use in
-  a [Jupyter notebook](http://jupyter.org/)
+## Additions in this fork
 
-* An emphasis on **metadata**.  Cytoflow assumes that you are measuring
-  fluorescence on several samples that were treated differently: either
-  they were collected at different times, treated with varying levels
-  of inducers, etc.  You specify the conditions for each sample up front,
-  then use those conditions to facet the analysis.
+### Compensation and transforms
 
-* Cytometry analysis conceptualized as a **workflow**.  Raw cytometry data
-  is usually not terribly useful: you may gate out cellular debris and 
-  aggregates (using FSC and SSC channels), then compensate for channel
-  bleed-through, and finally select only transfected cells before actually
-  looking at the parameters you're interested in experimentally.  Cytoflow
-  implements a workflow paradigm, where operations are applied sequentially;
-  a workflow can be saved and re-used, or shared with your coworkers.
+| Feature | Description |
+|---|---|
+| **AutoSpill compensation** | Compute the spillover matrix from single-colour controls without manual gating — robust regression + iterative refinement ([Roca et al. 2021](https://doi.org/10.1038/s41467-021-23126-8)) |
+| **FCS spillover** | Apply the matrix stored in the FCS file (`$SPILLOVER`/`SPILL`) with one click, as FlowJo does |
+| **Axis transforms** | Set per-channel logicle W / M / A and arcsinh cofactor — equivalent to FlowJo's "Customize Axis" |
+| **arcsinh scale** | Standard for mass cytometry and spectral cytometry: `arcsinh(x / cofactor)` |
+| **Channel scale defaults** | Persist a preferred scale (logicle, arcsinh, …) per channel across sessions |
 
-* **Easy to use.**  Sane defaults; good documentation; focused on doing one
-  thing and doing it well.
+### Gating
 
-* **Good visualization.**  I don't know about you, but I'm getting really
-  tired of FACSDiva plots.
+| Feature | Description |
+|---|---|
+| **Ellipse gate** | Draw an ellipse, then drag handles to resize, move, or rotate; remains a true ellipse on log/logicle axes |
+| **Freehand gate** | Lasso a population; simplified to ≤ 100 vertices, gates like a polygon |
+| **Magnetic gates** | Polygon, freehand and ellipse gates shift per tube/well to follow the population (`Adjust Per`) |
+| **Boolean gate** | Combine existing gates with `and` / `or` / `not`, e.g. `CD4_pos and not Dead` |
+| **GatingML / FlowJo import-export** | Exchange gates with FlowJo 10 workspaces and Gating-ML 2.0 files |
+| **Gate Template Library** | Save any gate to a `.gatetemplate` file (Ctrl+T) and reload it into a new experiment (Ctrl+Shift+T) |
+| **Improved gate drawing** | Polygon closes on double-click; vertices draggable; threshold/quadrant lines draggable; stray clicks no longer erase gates |
 
-* **Versatile.**  Built on Python, with a well-defined library of operations 
-  and visualizations that are well separated from the user interface.  Need an 
-  analysis that Cytoflow doesn't have?  Export your workflow to a Jupyter 
-  notebook and use any Python module you want to complete your analysis.  Data 
-  is stored in a `pandas.DataFrame`, which is rapidly becoming the standard for 
-  Python data analysis (and will make R users feel right at home.)
-  
-* **Extensible.**  [Adding a new analysis or visualization module](http://cytoflow.readthedocs.io/en/stable/new_modules.html) 
-  is simple; the interface to implement is only two or three functions.  
+### Analysis
 
-* **Quantitative and statistically sound.** Ready access to useful data-driven tools for
-  analysis, such as fitting 2-dimensional Gaussians for automated gating
-  and mixture modeling.
+| Feature | Description |
+|---|---|
+| **Population Tree** | Nested populations with event counts, % of parent and % of total — as a statistic table and a tree plot; "Build from workflow" infers hierarchy from gate subsets or FlowJo import |
+| **Proliferation** | Fit dye-dilution generations (CFSE, CellTrace Violet) — reports % divided, division, proliferation, expansion and replication indices |
+| **Cell Cycle** | Fit G0/G1, S and G2/M to a DNA-content histogram (Dean–Jett–Fox model), with sub-G1 and above-G2/M fractions |
+| **Statistical Test** | One-way ANOVA, Kruskal–Wallis, Welch's t-test or Mann–Whitney U; optional Tukey HSD post-hoc; compares per-replicate statistics or individual events; reports effect sizes and adjusted p-values |
+| **Cross-Entropy Test** | Statistical test of whether groups differ in a t-SNE embedding ([Roca et al. 2023](https://doi.org/10.1016/j.crmeth.2023.100641)) |
+| **PhenoGraph clustering** | k-nearest-neighbour graph with Jaccard weights + Leiden/Louvain community detection on any set of channels |
+| **UMAP** | Dimensionality reduction; fits on a sample, embeds all events |
+| **Derived parameter** | New channel from an arithmetic expression of other channels, e.g. `FITC_A / PE_A` |
+| **Sample Labels** | Assign short, human-readable names to any condition; optionally stores them as a new condition |
 
-### Installation
+### Visualisation
 
-**If you just want the point-and-click version (not the Python modules), you 
-  can install it from http://cytoflow.github.io/**
+| Feature | Description |
+|---|---|
+| **Histogram overlay** | Overlay histograms per condition; normalise to mode (peak = 100%) or display staggered |
+| **Back-gating** | Scatter and density plots highlight one gate's events on top of all events in a contrasting colour |
+| **Zoom and pan** | Pinch / two-finger scroll, mouse wheel or Ctrl+scroll; zoom is kept during gate adjustment; press **0** to reset |
+| **Undo / redo** | Edit → Undo/Redo (Cmd/Ctrl+Z) for all operation and view changes, including drawn gates |
+| **Export report** | File → Export Report: selected workflow plots to PDF (one vector plot per page, text editable) or PowerPoint |
+| **SVG / PDF export** | Scatter/density layers embedded as images; text remains editable in Illustrator, Affinity Designer and Inkscape |
 
-See the [installation notes](http://cytoflow.readthedocs.org/en/stable/INSTALL.html) 
-on [ReadTheDocs](http://cytoflow.readthedocs.org/).  Installation has been 
-testedon Linux, Windows (x86_64) and Mac (both Intel and Apple Silicon).  
-Cytoflow is distributed as an [Anaconda](https://www.anaconda.com/) package 
-**(recommended)** as well as a [traditional Python package](https://pypi.org/project/cytoflow/).
+### macOS improvements
 
-### Documentation
+- Dark-mode support (follows system appearance)
+- Unified title+toolbar bar
+- HiDPI / Retina opt-in
+- Window position and size saved and restored across launches
 
-Cytoflow's documentation lives at [ReadTheDocs](http://cytoflow.readthedocs.org/).
-Perhaps of most use is the [module index](http://cytoflow.readthedocs.org/en/latest/py-modindex.html).
-The example [Jupyter](http://jupyter.org/) notebooks, above, demonstrate how the package
-is intended to be used interactively.
+---
 
+## Building from source
 
+The build requires [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
+
+```bash
+git clone --recurse-submodules https://github.com/heesters/cytoflow.git
+cd cytoflow
+
+# macOS (remove [win] lines first)
+sed -i '' '/\[win\]/d' package/environment-build.yml
+conda env create -f package/environment-build.yml
+conda activate cytoflow
+pip install -e .
+python cytoflowgui/run.py
+```
+
+For Windows, see the GitHub Actions workflow at `.github/workflows/build-apps.yml` for the exact build steps.
+
+---
+
+## Based on
+
+This project is built on [Cytoflow](https://github.com/cytoflow/cytoflow) by Brian Teague, distributed under the [GNU General Public License v2](LICENSE).  All additions in this fork are released under the same licence.
