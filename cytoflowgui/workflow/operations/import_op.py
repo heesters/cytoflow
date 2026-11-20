@@ -67,7 +67,7 @@ class Channel(HasTraits):
     label = Str
 
     # default scale for plots of this channel
-    scale = Enum(['log', 'linear', 'logicle'], 'log')
+    scale = Enum('log', 'linear', 'logicle')
   
 
 @provides(IWorkflowOperation)
