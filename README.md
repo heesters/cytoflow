@@ -96,23 +96,27 @@ The design philosophy is [described in detail](https://github.com/cytoflow/cytof
 
 ---
 
-## Building from source
+## Running from source
 
-The build requires [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
+Requires [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (or Mamba).
 
 ```bash
 git clone --recurse-submodules https://github.com/heesters/cytoflow.git
 cd cytoflow
-
-# macOS (remove [win] lines first)
-sed -i '' '/\[win\]/d' package/environment-build.yml
-conda env create -f package/environment-build.yml
+conda env create -f environment.yml
 conda activate cytoflow
-pip install -e .
+SETUPTOOLS_SCM_PRETEND_VERSION=1.3.2 pip install -e .
 python cytoflowgui/run.py
 ```
 
-For Windows, see the GitHub Actions workflow at `.github/workflows/build-apps.yml` for the exact build steps.
+On Windows, replace the `pip install` line with:
+```
+set SETUPTOOLS_SCM_PRETEND_VERSION=1.3.2 && pip install -e .
+```
+
+The `SETUPTOOLS_SCM_PRETEND_VERSION` variable is needed because the fork has no matching version tags; without it `setuptools_scm` may fail to determine a version.
+
+To build the standalone `.app` / `.exe` installer, see the GitHub Actions workflow at `.github/workflows/build-apps.yml`.
 
 ---
 
